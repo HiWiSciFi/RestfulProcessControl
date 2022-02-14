@@ -1,0 +1,16 @@
+{
+	"fileName": "Start.cmd",
+	"arguments": "",
+	"restartOnCrash": true,
+
+	"preStartupShellCalls": [],
+	"postStartupShellCalls": [],
+	"postStartupStdinCalls": [],
+
+	"shutdownType": "kill",
+	"shutdownStdinString": null,
+	"preShutdownShellCalls": [],
+	"preShutdownStdinCalls": [],
+	"postShutdownShellCalls": [],
+	"postShutdownStdinCalls": []
+}
