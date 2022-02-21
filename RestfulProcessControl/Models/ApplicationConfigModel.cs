@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace RestfulProcessControl;
+namespace RestfulProcessControl.Models;
 
 // information required to start a process and interact with it:
-// 
+//
 // fileName : string
 // arguments : string
 // shutdownType : string --> [ "kill", "stdin" ]
@@ -17,7 +17,7 @@ namespace RestfulProcessControl;
 // postShutdownShellCalls : string[]
 // restartOnCrash : bool
 
-public struct ApplicationConfig
+public struct ApplicationConfigModel
 {
 	public string? FileName { get; set; }
 	public string? Arguments { get; set; }
@@ -34,7 +34,7 @@ public struct ApplicationConfig
 	public string[]? PostShutdownShellCalls { get; set; }
 	public string[]? PostShutdownStdinCalls { get; set; }
 
-	public ApplicationConfig() {
+	public ApplicationConfigModel() {
 		FileName = null;
 		Arguments = null;
 		RestartOnCrash = false;
@@ -50,14 +50,14 @@ public struct ApplicationConfig
 	}
 
 	public string Serialize() => Serialize(this);
-	public static string Serialize(ApplicationConfig data) => JsonSerializer.Serialize(data, ApplicationConfigJsonContext.Default.ApplicationConfig);
+	public static string Serialize(ApplicationConfigModel data) => JsonSerializer.Serialize(data, ApplicationConfigJsonContext.Default.ApplicationConfigModel);
 
-	public static ApplicationConfig? Deserialize(string data) {
-		try { return JsonSerializer.Deserialize(data, ApplicationConfigJsonContext.Default.ApplicationConfig); }
+	public static ApplicationConfigModel? Deserialize(string data) {
+		try { return JsonSerializer.Deserialize(data, ApplicationConfigJsonContext.Default.ApplicationConfigModel); }
 		catch { return null; }
 	}
 }
 
-[JsonSerializable(typeof(ApplicationConfig))]
+[JsonSerializable(typeof(ApplicationConfigModel))]
 [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 public partial class ApplicationConfigJsonContext : JsonSerializerContext { }

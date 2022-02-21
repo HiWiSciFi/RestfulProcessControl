@@ -1,9 +1,11 @@
-﻿namespace RestfulProcessControl;
+﻿using RestfulProcessControl.Models;
+
+namespace RestfulProcessControl;
 
 public class Application
 {
 	public string FolderName { get; }
-	public ApplicationConfig? Config { get; private set; }
+	public ApplicationConfigModel? Config { get; private set; }
 	public bool Running { get; private set; }
 
 	public Application() {
@@ -18,13 +20,11 @@ public class Application
 
 	public void ReloadConfig() => Config = LoadConfig();
 
-	private ApplicationConfig? LoadConfig() {
-		string jsonFile = Path.Combine(Directory.GetCurrentDirectory(), "apps", FolderName, "config.json");
-		if (!File.Exists(jsonFile)) return null;
-		string jsonString = File.ReadAllText(jsonFile);
-		ApplicationConfig? config = ApplicationConfig.Deserialize(jsonString);
-		if (config != null) return config;
-		return null;
+	private ApplicationConfigModel? LoadConfig() {
+		var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "apps", FolderName, "config.json");
+		if (!File.Exists(jsonFilePath)) return null;
+		var jsonString = File.ReadAllText(jsonFilePath);
+		return ApplicationConfigModel.Deserialize(jsonString);
 	}
 
 	public bool Start() {

@@ -1,12 +1,31 @@
 namespace RestfulProcessControl;
 
-public class Program {
+public static class Program {
+
 	public static void Main(string[] args) {
-		var builder = WebApplication.CreateBuilder(args);
+		var builder = CreateBuilder(args);
+		AddServices(ref builder);
+		BuildSwagger(ref builder);
+		var app = CreateApp(ref builder);
+		CreateRequestPipeline(ref app);
+		RunApp(ref app);
+	}
 
-		// Add services to the container.
+	private static WebApplicationBuilder CreateBuilder(string[] args) => WebApplication.CreateBuilder(args);
 
+	private static void AddServices(ref WebApplicationBuilder builder)
+	{
 		builder.Services.AddControllers();
+		builder.Services.AddAuthentication(options =>
+		{
+			options.DefaultChallengeScheme = "forbidscheme";
+			options.DefaultForbidScheme = "forbidscheme";
+			options.AddScheme<ForbiddenSchemeHandler>("forbidscheme", "Forbidden Handler");
+		});
+	}
+
+	private static void BuildSwagger(ref WebApplicationBuilder builder)
+	{
 		// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen(c =>
@@ -18,9 +37,12 @@ public class Program {
 				Description = "API for controlling server processes"
 			});
 		});
+	}
 
-		var app = builder.Build();
+	private static WebApplication CreateApp(ref WebApplicationBuilder builder) => builder.Build();
 
+	private static void CreateRequestPipeline(ref WebApplication app)
+	{
 		// Configure the HTTP request pipeline.
 		if (app.Environment.IsDevelopment())
 		{
@@ -36,6 +58,7 @@ public class Program {
 		app.UseAuthorization();
 
 		app.MapControllers();
-		app.Run();
 	}
+
+	private static void RunApp(ref WebApplication app) => app.Run();
 }

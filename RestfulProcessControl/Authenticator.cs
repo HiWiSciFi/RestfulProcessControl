@@ -1,38 +1,130 @@
-﻿using System.Security.Cryptography;
-using System.Text;
+﻿using Microsoft.Data.Sqlite;
+using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl;
 
 public static class Authenticator
 {
-	private static IEnumerable<string> JWTs;
-	private static Dictionary<string, string> users;
+	/// <summary>
+	/// Creates a user in the database from the specified parameters
+	/// </summary>
+	/// <param name="username">The username for the user</param>
+	/// <param name="password">The password for the user</param>
+	/// <param name="role">The role for the user</param>
+	/// <returns>true if the user was created, false otherwise</returns>
+	public static bool CreateUser(string username, string password, string role) =>
+		CreateUser(new UserModel(username, password, role));
 
-	static Authenticator() {
-		JWTs = new List<string>();
-		users = new Dictionary<string, string>();
+	/// <summary>
+	/// Creates a user in the database from a UserModel
+	/// </summary>
+	/// <param name="user">The UserModel to create the user from</param>
+	/// <returns>true if the user was created, false otherwise</returns>
+	public static bool CreateUser(in UserModel user)
+	{
+		try
+		{
+			using var connection = new SqliteConnection(@"Data Source=.\users.db");
+			connection.Open();
+
+			var command = connection.CreateCommand();
+			command.CommandText = @"INSERT INTO user (username, password, role)
+								VALUES ($username, $password, $role)";
+			command.Parameters.AddWithValue("$username", user.Username);
+			command.Parameters.AddWithValue("$password", BCrypt.Net.BCrypt.HashPassword(user.Password));
+			command.Parameters.AddWithValue("$role", user.Role);
+			return command.ExecuteNonQuery() == 1;
+		}
+		catch
+		{
+			return false;
+		}
 	}
 
-	public static string? Authenticate(string username, string password) {
-		if (!users.ContainsKey(username)) return null;
-		string hashedPW = GetStringHash(password);
-		if (users[username] == hashedPW) return CreateJWT();
-		return null;
+	/// <summary>
+	/// Authenticates a user in the database
+	/// </summary>
+	/// <param name="user">The user to authenticate</param>
+	/// <returns>true if the login data was correct, false otherwise</returns>
+	public static bool Authenticate(in UserModel user)
+	{
+		try
+		{
+			if (user.Username is null || user.Password is null) return false;
+			var pwHash = string.Empty;
+			using (var connection = new SqliteConnection(@"Data Source=.\users.db"))
+			{
+				connection.Open();
+				var command = connection.CreateCommand();
+				command.CommandText = "SELECT * FROM user WHERE username = $username";
+				command.Parameters.AddWithValue("$username", user.Username);
+				using var reader = command.ExecuteReader();
+				if (reader.Read())
+				{
+					pwHash = reader.GetString(reader.GetOrdinal("password"));
+					user.Role = reader.GetString(reader.GetOrdinal("role"));
+				}
+			}
+
+			return BCrypt.Net.BCrypt.Verify(user.Password, pwHash);
+		}
+		catch
+		{
+			return false;
+		}
 	}
 
-	public static bool IsTokenValid(string token) {
-		return JWTs.Contains(token);
+	/// <summary>
+	/// Checks if a JWT is valid for this application
+	/// </summary>
+	/// <param name="token">The JWT to check for validity</param>
+	/// <returns>true, if the JWT is valid, false otherwise</returns>
+	public static bool IsTokenValid(string token)
+	{
+		JwtModel jwt = new(token);
+		return IsTokenValid(in jwt);
 	}
 
-	private static string GetStringHash(string input) {
-		using HashAlgorithm algorithm = SHA256.Create();
-		byte[] buffer = algorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
-		return Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-	}
+	/// <summary>
+	/// Checks if a JWT is valid for this application
+	/// </summary>
+	/// <param name="token">The JWT to check for validity</param>
+	/// <returns>true, if the JWT is valid, false otherwise</returns>
+	public static bool IsTokenValid(in JwtModel token) => token.IsValid();
 
-	private static string CreateJWT() {
-		string token = string.Empty;
-		JWTs.Append(token);
-		return token;
+	/// <summary>
+	/// Creates a JWT (DOESN'T AUTHENTICATE USER) for a user and a specified maximum session time (without refreshing)
+	/// </summary>
+	/// <param name="user">The User to create the JWT for</param>
+	/// <param name="maxSessionTime">The maximum session time (without refreshing)</param>
+	/// <returns>The JWT that has been created or null if it could not be created</returns>
+	public static JwtModel? CreateJwt(in UserModel user, int maxSessionTime)
+	{
+		try
+		{
+			JwtModel jwt = new();
+			JwtModel.JwtHeader header = new();
+			JwtModel.JwtPayload payload = new();
+
+			header.Algorithm = "HS256";
+			header.Type = "JWT";
+
+			payload.Subject = user.Username;
+			payload.Role = user.Role;
+			payload.IssuedAt = UnixTime.Now;
+			payload.ExpirationTime = payload.IssuedAt + maxSessionTime;
+
+			jwt.Header = header;
+			jwt.Payload = payload;
+
+			jwt.Fill();
+			jwt.GenerateSignature();
+
+			return jwt;
+		}
+		catch
+		{
+			return null;
+		}
 	}
 }
