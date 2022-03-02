@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RestfulProcessControl;
 
 namespace ProcessControlTests;
 
@@ -6,8 +8,11 @@ namespace ProcessControlTests;
 public class UnixTimeTests
 {
 	[TestMethod]
-	public void TestMethod1()
+	public void NowTest()
 	{
-
+		var first = UnixTime.Now;
+		Thread.Sleep(1000);
+		var second = UnixTime.Now;
+		Assert.AreEqual(first+1, second, 0.1);
 	}
 }

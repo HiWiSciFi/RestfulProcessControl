@@ -5,12 +5,13 @@ namespace RestfulProcessControl.Controllers;
 
 [Route("Auth/Token")]
 [ApiController]
-public class AuthenticationController : ControllerBase
+public class AuthenticationHttpController : ControllerBase
 {
-	public const int MaxSessionTime = 10; // seconds
+	public const int MaxRefreshTime = 100; // seconds
+	public const int MaxSessionTime = 20; // seconds
 
-	private readonly ILogger<AuthenticationController> _logger;
-	public AuthenticationController(ILogger<AuthenticationController> logger) => _logger = logger;
+	private readonly ILogger<AuthenticationHttpController> _logger;
+	public AuthenticationHttpController(ILogger<AuthenticationHttpController> logger) => _logger = logger;
 
 	/// <summary>
 	/// Authenticates a User using their login credentials and responds with a JWT for their session
@@ -31,12 +32,28 @@ public class AuthenticationController : ControllerBase
 	}
 
 	/// <summary>
+	/// Refreshes a JWT
+	/// </summary>
+	/// <param name="jwt">The JWT to refresh</param>
+	/// <returns>The refreshed JWT or 403Forbidden if it is not allowed to be refreshed</returns>
+	[RequireHttps]
+	[HttpPost("Refresh")]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	public IActionResult RefreshJwtToken([FromQuery]string jwt)
+	{
+		var token = new JwtModel(jwt);
+		if (token.Refresh(MaxSessionTime, MaxRefreshTime)) return Ok(token.ToString());
+		return Forbid();
+	}
+
+	/// <summary>
 	/// Checks if a JWT is valid for this application
 	/// </summary>
-	/// <param name="token">The JWT to check for validity</param>
+	/// <param name="jwt">The JWT to check for validity</param>
 	/// <returns>true, if the JWT is valid, false otherwise</returns>
 	[RequireHttps]
 	[HttpGet("Valid")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
-	public IActionResult IsTokenValidRequest([FromQuery]string token) => Ok(Authenticator.IsTokenValid(token));
+	public IActionResult IsTokenValidRequest([FromQuery]string jwt) => Ok(Authenticator.IsTokenValid(jwt));
 }

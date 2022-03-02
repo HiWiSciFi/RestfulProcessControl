@@ -11,6 +11,9 @@ public class JwtModel
 	private static readonly byte[] SecretKey;
 	static JwtModel() => SecretKey = RandomNumberGenerator.GetBytes(64);
 
+	/// <summary>
+	/// Representation for the Payload of a JWT
+	/// </summary>
 	public class JwtPayload
 	{
 		[JsonPropertyName("sub")]
@@ -23,6 +26,9 @@ public class JwtModel
 		public int ExpirationTime { get; set; }
 	}
 
+	/// <summary>
+	/// Representation for the Header of a JWT
+	/// </summary>
 	public class JwtHeader
 	{
 		[JsonPropertyName("alg")]
@@ -31,6 +37,9 @@ public class JwtModel
 		public string? Type { get; set; }
 	}
 
+	/// <summary>
+	/// The string of the full Base64Url encoded JWT
+	/// </summary>
 	private string? Jwt { get; set; }
 
 	public string? EncodedHeader { get; set; }
@@ -62,6 +71,10 @@ public class JwtModel
 
 	public override string ToString() => Jwt ?? Fill() ?? "Invalid parameters";
 
+	/// <summary>
+	/// Fills the missing elements of the JWT
+	/// </summary>
+	/// <returns>The encoded JWT string if it could be created</returns>
 	public string? Fill()
 	{
 		if (Jwt is not null)
@@ -107,6 +120,10 @@ public class JwtModel
 		return Jwt;
 	}
 
+	/// <summary>
+	/// Checks the validity of a JWT
+	/// </summary>
+	/// <returns>true if the JWT is valid, false otherwise</returns>
 	public bool IsValid()
 	{
 		if (Signature is null || Payload is null) return false;
@@ -128,6 +145,37 @@ public class JwtModel
 		return successful;
 	}
 
+	/// <summary>
+	/// Refreshes the token
+	/// </summary>
+	/// <param name="by">The amount of seconds to add to the expiration date</param>
+	/// <param name="max">The total max time frame the token will be valid</param>
+	/// <returns>true if successful, false otherwise</returns>
+	public bool Refresh(int by, int max)
+	{
+		if (!IsValid() || Payload == null) return false;
+
+		// no further refreshing allowed
+		if (Payload.ExpirationTime - Payload.IssuedAt >= max) return false;
+
+		var exp = UnixTime.Now + by;
+		// if full length cannot be added
+		if (exp - Payload.IssuedAt > max) Payload.ExpirationTime = exp - (Payload.IssuedAt + max - exp);
+		// add full time otherwise
+		else Payload.ExpirationTime = exp;
+
+		// refresh necessary values
+		EncodedPayload = null;
+		Signature = null;
+		Jwt = null;
+		Fill();
+		return true;
+	}
+
+	/// <summary>
+	/// Generates the signature according to the stored data
+	/// </summary>
+	/// <returns>true if successful, false otherwise</returns>
 	public bool GenerateSignature()
 	{
 		try

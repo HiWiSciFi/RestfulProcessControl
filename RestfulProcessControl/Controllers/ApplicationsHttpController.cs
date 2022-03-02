@@ -5,13 +5,13 @@ namespace RestfulProcessControl.Controllers;
 
 [ApiController]
 [Route("Apps")]
-public class ApplicationsController : ControllerBase
+public class ApplicationsHttpController : ControllerBase
 {
-	private static readonly List<Application> Apps;
-	static ApplicationsController() => Apps = new List<Application> { new() };
+	private static readonly List<ApplicationController> Apps;
+	static ApplicationsHttpController() => Apps = new List<ApplicationController> { new() };
 
-	private readonly ILogger<ApplicationsController> _logger;
-	public ApplicationsController(ILogger<ApplicationsController> logger) => _logger = logger;
+	private readonly ILogger<ApplicationsHttpController> _logger;
+	public ApplicationsHttpController(ILogger<ApplicationsHttpController> logger) => _logger = logger;
 
 	/// <summary>
 	/// Get all Applications
@@ -20,7 +20,7 @@ public class ApplicationsController : ControllerBase
 	/// <returns>200OK and an array of Applications if it was successful, 403Forbidden otherwise</returns>
 	[RequireHttps]
 	[HttpGet]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Application>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ApplicationController>))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetAll([FromQuery]string jwt)
 	{
@@ -40,7 +40,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult ReloadApplicationConfig(string jwt, int id)
+	public IActionResult ReloadApplicationConfig([FromQuery]string jwt, [FromRoute]int id)
 	{
 		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
 
@@ -58,10 +58,10 @@ public class ApplicationsController : ControllerBase
 	/// does not exist, 403Forbidden otherwise</returns>
 	[RequireHttps]
 	[HttpGet("{id:int}")]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Application))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApplicationController))]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult GetById(string jwt, int id)
+	public IActionResult GetById([FromQuery]string jwt, [FromRoute]int id)
 	{
 		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
 
@@ -74,13 +74,13 @@ public class ApplicationsController : ControllerBase
 	/// </summary>
 	/// <param name="jwt">The JWT to authorize the request</param>
 	/// <param name="id">The ID of the application</param>
-	/// <returns></returns>
+	/// <returns>A File stream for the backup file</returns>
 	[RequireHttps]
 	[HttpGet("{id:int}/download")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileStream))]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult GetBackup(string jwt, int id)
+	public IActionResult GetBackup([FromQuery]string jwt, [FromRoute]int id)
 	{
 		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
 

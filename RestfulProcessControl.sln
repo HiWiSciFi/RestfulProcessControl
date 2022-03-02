@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestfulProcessControl", "RestfulProcessControl\RestfulProcessControl.csproj", "{0B85DF17-262C-4DC1-AABA-B33B56049884}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessControlTests", "ProcessControlTests\ProcessControlTests.csproj", "{36755BF7-BF0C-424D-A096-277A0CB7DE5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessControlTests", "ProcessControlTests\ProcessControlTests.csproj", "{36755BF7-BF0C-424D-A096-277A0CB7DE5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
