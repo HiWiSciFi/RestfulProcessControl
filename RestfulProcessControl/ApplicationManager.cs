@@ -9,7 +9,6 @@ public class ApplicationManager
 	public ApplicationConfigModel? Config { get; private set; }
 	public bool Running { get; private set; }
 
-	public ILogger<ApplicationManager> _logger;
 	public ApplicationManager()
 	{
 		FolderName = "Testapp";
@@ -27,7 +26,7 @@ public class ApplicationManager
 	/// </summary>
 	/// <returns>A Configuration if one could be loaded</returns>
 	private ApplicationConfigModel? LoadConfig() {
-		_logger.LogInformation("Loading Configuration for \"{0}\"...", FolderName);
+		Logger.Log(LogLevel.Information, "Loading Configuration for \"{0}\"...", FolderName);
 		var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "apps", FolderName, "config.json");
 		if (!System.IO.File.Exists(jsonFilePath)) return null;
 		var jsonString = System.IO.File.ReadAllText(jsonFilePath);
@@ -40,7 +39,7 @@ public class ApplicationManager
 	/// <returns>True, if successful, false otherwise</returns>
 	public bool Start()
 	{
-		_logger.LogInformation("Starting application \"{0}\"...", FolderName);
+		Logger.Log(LogLevel.Information, "Starting application \"{0}\"...", FolderName);
 		Running = false;
 		return false;
 	}
@@ -51,7 +50,7 @@ public class ApplicationManager
 	/// <returns>True if successful, false otherwise</returns>
 	public bool Stop()
 	{
-		_logger.LogInformation("Stopping application \"{0}\"...", FolderName);
+		Logger.Log(LogLevel.Information, "Stopping application \"{0}\"...", FolderName);
 		Running = false;
 		return false;
 	}

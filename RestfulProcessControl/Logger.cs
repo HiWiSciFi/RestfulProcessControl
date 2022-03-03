@@ -1,67 +1,69 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿namespace RestfulProcessControl;
 
-namespace RestfulProcessControl;
-
-public class Logger : ControllerBase
+public static class Logger
 {
-	private static ILogger<Logger> _logger;
+	public static void Log(LogLevel level, string? message) =>
+		Log<object?, object?, object?, object?, object?>(level, message, null, null, null, null, null);
 
-	public Logger(ILogger<Logger> logger) => _logger = logger;
+	public static void Log<T0>(LogLevel level, string? message, T0? a0) =>
+		Log<T0?, object?, object?, object?, object?>(level, message, a0, null, null, null, null);
 
-	public static void Log<T0>(LogLevel level, string? message, T0? a0)
+	public static void Log<T0, T1>(LogLevel level, string? message, T0? a0, T1? a1) =>
+		Log<T0?, T1?, object?, object?, object?>(level, message, a0, a1, null, null, null);
+
+	public static void Log<T0, T1, T2>(LogLevel level, string? message, T0? a0, T1? a1, T2? a2) =>
+		Log<T0?, T1?, T2?, object?, object?>(level, message, a0, a1, a2, null, null);
+
+	public static void Log<T0, T1, T2, T3>(LogLevel level, string? message, T0? a0, T1? a1, T2? a2, T3? a3) =>
+		Log<T0?, T1?, T2?, T3?, object?>(level, message, a0, a1, a2, a3, null);
+
+	public static void Log<T0, T1, T2, T3, T4>(LogLevel level, string? message, T0? a0, T1? a1, T2? a2, T3? a3, T4? a4)
 	{
-		if (message is null) return;
+		message ??= string.Empty;
 		switch (level)
 		{
 			case LogLevel.Information:
-				_logger.LogInformation(message, a0);
+				Console.ForegroundColor = ConsoleColor.DarkGreen;
+				Console.BackgroundColor = ConsoleColor.Black;
+				Console.Write("info");
+				Console.ResetColor();
+				Console.Write(": ");
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			case LogLevel.Debug:
-				_logger.LogDebug(message, a0);
+				Console.Write("dbug: ");
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			case LogLevel.Trace:
-				_logger.LogTrace(message, a0);
+				Console.Write("trce: ");
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			case LogLevel.Warning:
-				_logger.LogWarning(message, a0);
+				Console.ForegroundColor = ConsoleColor.DarkYellow;
+				Console.BackgroundColor = ConsoleColor.Black;
+				Console.Write("warn");
+				Console.ResetColor();
+				Console.Write(": ");
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			case LogLevel.Error:
-				_logger.LogError(message, a0);
+				Console.ForegroundColor = ConsoleColor.Black;
+				Console.BackgroundColor = ConsoleColor.DarkRed;
+				Console.Write("fail");
+				Console.ResetColor();
+				Console.Write(": ");
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			case LogLevel.Critical:
-				_logger.LogCritical(message, a0);
+				Console.ForegroundColor = ConsoleColor.Gray;
+				Console.BackgroundColor = ConsoleColor.DarkRed;
+				Console.Write("crit");
+				Console.ResetColor();
+				Console.Write(": ");
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			case LogLevel.None:
-				break;
-			default:
-				throw new ArgumentOutOfRangeException(nameof(level), level, null);
-		}
-	}
-
-	public static void Log<T0, T1>(LogLevel level, string? message, T0? a0, T1? a1)
-	{
-		if (message is null) return;
-		switch (level)
-		{
-			case LogLevel.Information:
-				_logger.LogInformation(message, a0, a1);
-				break;
-			case LogLevel.Debug:
-				_logger.LogDebug(message, a0, a1);
-				break;
-			case LogLevel.Trace:
-				_logger.LogTrace(message, a0, a1);
-				break;
-			case LogLevel.Warning:
-				_logger.LogWarning(message, a0, a1);
-				break;
-			case LogLevel.Error:
-				_logger.LogError(message, a0, a1);
-				break;
-			case LogLevel.Critical:
-				_logger.LogCritical(message, a0, a1);
-				break;
-			case LogLevel.None:
+				Console.WriteLine(message, a0, a1, a2, a3, a4);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(level), level, null);

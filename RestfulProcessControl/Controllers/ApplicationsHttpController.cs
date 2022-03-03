@@ -10,9 +10,6 @@ public class ApplicationsHttpController : ControllerBase
 	private static readonly List<ApplicationManager> Apps;
 	static ApplicationsHttpController() => Apps = new List<ApplicationManager> { new() };
 
-	private readonly ILogger<ApplicationsHttpController> _logger;
-	public ApplicationsHttpController(ILogger<ApplicationsHttpController> logger) => _logger = logger;
-
 	/// <summary>
 	/// Get all Applications
 	/// </summary>
@@ -84,7 +81,7 @@ public class ApplicationsHttpController : ControllerBase
 	{
 		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
 
-		_logger.LogInformation("Creating and Downloading Backup of application {id}...", id);
+		Logger.Log(LogLevel.Information, "Creating and Downloading Backup of application {id}...", id);
 
 		if (id >= Apps.Count) return NotFound();
 		var backupFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "apps", Apps[id].FolderName, "application");

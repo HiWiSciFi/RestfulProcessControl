@@ -27,7 +27,7 @@ public class AuthenticationHttpController : ControllerBase
 		if (!Authenticator.Authenticate(in user)) return Forbid();
 		var jwt = Authenticator.CreateJwt(in user, MaxSessionTime);
 		if (jwt is null) return Forbid();
-		_logger.LogInformation("Created JWT for user {}: {}", user.Username, jwt.ToString());
+		Logger.Log(LogLevel.Information, "Created JWT for user {0}: {1}", user.Username, jwt.ToString());
 		return Ok(jwt.ToString());
 	}
 

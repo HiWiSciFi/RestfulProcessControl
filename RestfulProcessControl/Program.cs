@@ -29,6 +29,11 @@ public static class Program {
 					.AllowAnyMethod()
 					.AllowAnyHeader());
 		});
+		builder.Services.AddLogging(options =>
+		{
+			options.AddConsole();
+			options.AddSimpleConsole();
+		});
 	}
 
 	private static void BuildSwagger(ref WebApplicationBuilder builder)
