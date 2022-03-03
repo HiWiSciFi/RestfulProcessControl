@@ -44,7 +44,7 @@ public class Logger : ControllerBase
 		switch (level)
 		{
 			case LogLevel.Information:
-				_logger.LogInformation(message, new object[] { a0, a1 });
+				_logger.LogInformation(message, a0, a1);
 				break;
 			case LogLevel.Debug:
 				_logger.LogDebug(message, a0, a1);

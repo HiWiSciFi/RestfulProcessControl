@@ -15,23 +15,20 @@ public static class Program {
 
 	private static void AddServices(ref WebApplicationBuilder builder)
 	{
+		builder.Services.AddCors(options =>
+		{
+			options.AddPolicy("AllowAll",
+				policyBuilder => policyBuilder.AllowAnyOrigin()
+					.AllowAnyMethod()
+					.AllowAnyHeader()
+					.AllowCredentials());
+		});
 		builder.Services.AddControllers();
 		builder.Services.AddAuthentication(options =>
 		{
 			options.DefaultChallengeScheme = "forbidscheme";
 			options.DefaultForbidScheme = "forbidscheme";
 			options.AddScheme<ForbiddenSchemeHandler>("forbidscheme", "Forbidden Handler");
-		});
-		builder.Services.AddCors(options =>
-		{
-			options.AddPolicy("AllowAll",
-				policyBuilder =>
-				{
-					policyBuilder.AllowAnyOrigin()
-						.AllowAnyMethod()
-						.AllowAnyHeader()
-						.AllowCredentials();
-				});
 		});
 	}
 
@@ -64,6 +61,8 @@ public static class Program {
 				c.RoutePrefix = "docs";
 			});
 		}
+
+		app.UseCors("AllowAll");
 
 		app.UseHttpsRedirection();
 		app.UseAuthorization();
