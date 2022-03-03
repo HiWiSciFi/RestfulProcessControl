@@ -3,20 +3,18 @@ using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl;
 
-public class ApplicationController : ControllerBase
+public class ApplicationManager
 {
 	public string FolderName { get; }
 	public ApplicationConfigModel? Config { get; private set; }
 	public bool Running { get; private set; }
 
-	public ApplicationController() {
+	public ILogger<ApplicationManager> _logger;
+	public ApplicationManager()
+	{
 		FolderName = "Testapp";
 		Config = null;
 		Running = false;
-	}
-
-	public ApplicationController(string folderName) {
-		FolderName = folderName;
 	}
 
 	/// <summary>
@@ -29,6 +27,7 @@ public class ApplicationController : ControllerBase
 	/// </summary>
 	/// <returns>A Configuration if one could be loaded</returns>
 	private ApplicationConfigModel? LoadConfig() {
+		_logger.LogInformation("Loading Configuration for \"{0}\"...", FolderName);
 		var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "apps", FolderName, "config.json");
 		if (!System.IO.File.Exists(jsonFilePath)) return null;
 		var jsonString = System.IO.File.ReadAllText(jsonFilePath);
@@ -41,6 +40,7 @@ public class ApplicationController : ControllerBase
 	/// <returns>True, if successful, false otherwise</returns>
 	public bool Start()
 	{
+		_logger.LogInformation("Starting application \"{0}\"...", FolderName);
 		Running = false;
 		return false;
 	}
@@ -51,6 +51,7 @@ public class ApplicationController : ControllerBase
 	/// <returns>True if successful, false otherwise</returns>
 	public bool Stop()
 	{
+		_logger.LogInformation("Stopping application \"{0}\"...", FolderName);
 		Running = false;
 		return false;
 	}

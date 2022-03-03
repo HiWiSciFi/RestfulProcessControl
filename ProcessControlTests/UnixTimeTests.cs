@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RestfulProcessControl;
+using RestfulProcessControl.Models;
 
 namespace ProcessControlTests;
 

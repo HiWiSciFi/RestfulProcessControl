@@ -22,6 +22,17 @@ public static class Program {
 			options.DefaultForbidScheme = "forbidscheme";
 			options.AddScheme<ForbiddenSchemeHandler>("forbidscheme", "Forbidden Handler");
 		});
+		builder.Services.AddCors(options =>
+		{
+			options.AddPolicy("AllowAll",
+				policyBuilder =>
+				{
+					policyBuilder.AllowAnyOrigin()
+						.AllowAnyMethod()
+						.AllowAnyHeader()
+						.AllowCredentials();
+				});
+		});
 	}
 
 	private static void BuildSwagger(ref WebApplicationBuilder builder)

@@ -7,8 +7,8 @@ namespace RestfulProcessControl.Controllers;
 [Route("Apps")]
 public class ApplicationsHttpController : ControllerBase
 {
-	private static readonly List<ApplicationController> Apps;
-	static ApplicationsHttpController() => Apps = new List<ApplicationController> { new() };
+	private static readonly List<ApplicationManager> Apps;
+	static ApplicationsHttpController() => Apps = new List<ApplicationManager> { new() };
 
 	private readonly ILogger<ApplicationsHttpController> _logger;
 	public ApplicationsHttpController(ILogger<ApplicationsHttpController> logger) => _logger = logger;
@@ -20,7 +20,7 @@ public class ApplicationsHttpController : ControllerBase
 	/// <returns>200OK and an array of Applications if it was successful, 403Forbidden otherwise</returns>
 	[RequireHttps]
 	[HttpGet]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ApplicationController>))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ApplicationManager>))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetAll([FromQuery]string jwt)
 	{
@@ -58,7 +58,7 @@ public class ApplicationsHttpController : ControllerBase
 	/// does not exist, 403Forbidden otherwise</returns>
 	[RequireHttps]
 	[HttpGet("{id:int}")]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApplicationController))]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApplicationManager))]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetById([FromQuery]string jwt, [FromRoute]int id)

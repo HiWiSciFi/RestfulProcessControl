@@ -1,7 +1,12 @@
-﻿namespace RestfulProcessControl;
+﻿namespace RestfulProcessControl.Models;
 
 public static class UnixTime
 {
+	/// <summary>
+	/// Unix Epoch
+	/// </summary>
+	public static int UnixEpoch => 0;
+
 	/// <summary>
 	/// The amount of seconds since Unix Epoch (Recalculated on call)
 	/// </summary>
