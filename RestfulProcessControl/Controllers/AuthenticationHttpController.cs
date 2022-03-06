@@ -13,6 +13,20 @@ public class AuthenticationHttpController : ControllerBase
 	private readonly ILogger<AuthenticationHttpController> _logger;
 	public AuthenticationHttpController(ILogger<AuthenticationHttpController> logger) => _logger = logger;
 
+	// TODO: REMOVE BEFORE DEPLOYMENT !!!
+	/// <summary>
+	/// Creates a JWT with administrator privileges and a session time of one hour
+	/// </summary>
+	/// <returns>The created JWT</returns>
+	[RequireHttps]
+	[HttpPost("TempGetAdminJwt")]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+	public IActionResult TestGet()
+	{
+		UserModel user = new("Test", null, "admin");
+		return Ok(Authenticator.CreateJwt(in user, 3600)!.ToString());
+	}
+
 	/// <summary>
 	/// Authenticates a User using their login credentials and responds with a JWT for their session
 	/// </summary>

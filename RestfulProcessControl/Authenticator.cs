@@ -6,72 +6,17 @@ namespace RestfulProcessControl;
 public static class Authenticator
 {
 	/// <summary>
-	/// Creates a user in the database from the specified parameters
-	/// </summary>
-	/// <param name="username">The username for the user</param>
-	/// <param name="password">The password for the user</param>
-	/// <param name="role">The role for the user</param>
-	/// <returns>true if the user was created, false otherwise</returns>
-	public static bool CreateUser(string username, string password, string role) =>
-		CreateUser(new UserModel(username, password, role));
-
-	/// <summary>
-	/// Creates a user in the database from a UserModel
-	/// </summary>
-	/// <param name="user">The UserModel to create the user from</param>
-	/// <returns>true if the user was created, false otherwise</returns>
-	public static bool CreateUser(in UserModel user)
-	{
-		try
-		{
-			using var connection = new SqliteConnection(@"Data Source=.\users.db");
-			connection.Open();
-
-			var command = connection.CreateCommand();
-			command.CommandText = @"INSERT INTO user (username, password, role)
-								VALUES ($username, $password, $role)";
-			command.Parameters.AddWithValue("$username", user.Username);
-			command.Parameters.AddWithValue("$password", BCrypt.Net.BCrypt.HashPassword(user.Password));
-			command.Parameters.AddWithValue("$role", user.Role);
-			return command.ExecuteNonQuery() == 1;
-		}
-		catch
-		{
-			return false;
-		}
-	}
-
-	/// <summary>
 	/// Authenticates a user in the database
 	/// </summary>
 	/// <param name="user">The user to authenticate</param>
 	/// <returns>true if the login data was correct, false otherwise</returns>
 	public static bool Authenticate(in UserModel user)
 	{
-		try
-		{
-			if (user.Username is null || user.Password is null) return false;
-			var pwHash = string.Empty;
-			using (var connection = new SqliteConnection(@"Data Source=.\users.db"))
-			{
-				connection.Open();
-				var command = connection.CreateCommand();
-				command.CommandText = "SELECT * FROM user WHERE username = $username";
-				command.Parameters.AddWithValue("$username", user.Username);
-				using var reader = command.ExecuteReader();
-				if (reader.Read())
-				{
-					pwHash = reader.GetString(reader.GetOrdinal("password"));
-					user.Role = reader.GetString(reader.GetOrdinal("role"));
-				}
-			}
-
-			return BCrypt.Net.BCrypt.Verify(user.Password, pwHash);
-		}
-		catch
-		{
-			return false;
-		}
+		Logger.Log(LogLevel.Information, "role: {0}", user.Role);
+		if (user.Username is null || user.Password is null) return false;
+		if (!UserManager.CheckPassword(user.Username, user.Password)) return false;
+		user.Role = UserManager.GetUser(user.Username, null)!.Role;
+		return true;
 	}
 
 	/// <summary>
@@ -79,11 +24,7 @@ public static class Authenticator
 	/// </summary>
 	/// <param name="token">The JWT to check for validity</param>
 	/// <returns>true, if the JWT is valid, false otherwise</returns>
-	public static bool IsTokenValid(string token)
-	{
-		JwtModel jwt = new(token);
-		return IsTokenValid(in jwt);
-	}
+	public static bool IsTokenValid(string token) => new JwtModel(token).IsValid();
 
 	/// <summary>
 	/// Checks if a JWT is valid for this application

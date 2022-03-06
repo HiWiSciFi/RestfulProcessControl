@@ -16,7 +16,7 @@ public class UserModel
 		Role = null;
 	}
 
-	public UserModel(string username, string password, string role)
+	public UserModel(string? username, string? password, string? role)
 	{
 		Username = username;
 		Password = password;
