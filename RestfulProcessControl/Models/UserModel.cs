@@ -6,22 +6,21 @@ namespace RestfulProcessControl.Models;
 public class UserModel
 {
 	public string? Username { get; set; }
-	public string? Password { get; set; }
 	public string? Role { get; set; }
 
 	public UserModel()
 	{
 		Username = null;
-		Password = null;
 		Role = null;
 	}
 
-	public UserModel(string? username, string? password, string? role)
+	public UserModel(string? username, string? role)
 	{
 		Username = username;
-		Password = password;
 		Role = role;
 	}
+
+	public static implicit operator LoginModel(UserModel user) => new(user.Username, null);
 
 	public string Serialize() => Serialize(this);
 	public static string Serialize(UserModel data) => JsonSerializer.Serialize(data, UserModelJsonContext.Default.UserModel);

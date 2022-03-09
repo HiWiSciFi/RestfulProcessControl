@@ -5,10 +5,10 @@ namespace RestfulProcessControl.Controllers;
 
 [ApiController]
 [Route("Apps")]
-public class ApplicationsHttpController : ControllerBase
+public class ApplicationsController : ControllerBase
 {
 	private static readonly List<ApplicationManager> Apps;
-	static ApplicationsHttpController() => Apps = new List<ApplicationManager> { new() };
+	static ApplicationsController() => Apps = new List<ApplicationManager> { new() };
 
 	/// <summary>
 	/// Get all Applications

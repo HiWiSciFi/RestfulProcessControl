@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
-using RestfulProcessControl.Models;
+﻿using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl;
 
@@ -10,13 +9,11 @@ public static class Authenticator
 	/// </summary>
 	/// <param name="user">The user to authenticate</param>
 	/// <returns>true if the login data was correct, false otherwise</returns>
-	public static bool Authenticate(in UserModel user)
+	public static bool Authenticate(in LoginModel user)
 	{
-		Logger.Log(LogLevel.Information, "role: {0}", user.Role);
+		Logger.Log(LogLevel.Information, "Authenticating user \"{0}\"", user.Username);
 		if (user.Username is null || user.Password is null) return false;
-		if (!UserManager.CheckPassword(user.Username, user.Password)) return false;
-		user.Role = UserManager.GetUser(user.Username, null)!.Role;
-		return true;
+		return UserManager.CheckPassword(user.Username, user.Password);
 	}
 
 	/// <summary>

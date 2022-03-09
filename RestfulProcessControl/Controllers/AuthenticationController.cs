@@ -5,13 +5,13 @@ namespace RestfulProcessControl.Controllers;
 
 [Route("Auth/Token")]
 [ApiController]
-public class AuthenticationHttpController : ControllerBase
+public class AuthenticationController : ControllerBase
 {
 	public const int MaxRefreshTime = 100; // seconds
 	public const int MaxSessionTime = 20; // seconds
 
-	private readonly ILogger<AuthenticationHttpController> _logger;
-	public AuthenticationHttpController(ILogger<AuthenticationHttpController> logger) => _logger = logger;
+	private readonly ILogger<AuthenticationController> _logger;
+	public AuthenticationController(ILogger<AuthenticationController> logger) => _logger = logger;
 
 	// TODO: REMOVE BEFORE DEPLOYMENT !!!
 	/// <summary>
@@ -23,7 +23,7 @@ public class AuthenticationHttpController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
 	public IActionResult TestGet()
 	{
-		UserModel user = new("Test", null, "admin");
+		UserModel user = new("Test", "admin");
 		return Ok(Authenticator.CreateJwt(in user, 3600)!.ToString());
 	}
 
@@ -36,10 +36,11 @@ public class AuthenticationHttpController : ControllerBase
 	[HttpPost]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult GetJwtToken([FromBody]UserModel user)
+	public IActionResult GetJwtToken([FromBody]LoginModel user)
 	{
 		if (!Authenticator.Authenticate(in user)) return Forbid();
-		var jwt = Authenticator.CreateJwt(in user, MaxSessionTime);
+		var uuser = (UserModel) user;
+		var jwt = Authenticator.CreateJwt(in uuser, MaxSessionTime);
 		if (jwt is null) return Forbid();
 		Logger.Log(LogLevel.Information, "Created JWT for user {0}: {1}", user.Username, jwt.ToString());
 		return Ok(jwt.ToString());

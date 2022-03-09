@@ -26,7 +26,6 @@ public static class UserManager
 			{
 				users.Add(
 					new UserModel(reader.GetString(reader.GetOrdinal("username")),
-						null,
 						reader.GetString(reader.GetOrdinal("role"))));
 			}
 			return users;
@@ -45,14 +44,15 @@ public static class UserManager
 	/// <param name="role">The role for the user</param>
 	/// <returns>true if the user was created, false otherwise</returns>
 	public static bool CreateUser(string username, string password, string role) =>
-		CreateUser(new UserModel(username, password, role));
+		CreateUser(new LoginModel(username, password), role);
 
 	/// <summary>
 	/// Creates a user in the database from a UserModel
 	/// </summary>
-	/// <param name="user">The UserModel to create the user from</param>
+	/// <param name="user">The LoginModel to create the user from</param>
+	/// <param name="role">The role for the created user</param>
 	/// <returns>true if the user was created, false otherwise</returns>
-	public static bool CreateUser(in UserModel user)
+	public static bool CreateUser(in LoginModel user, string role)
 	{
 		try
 		{
@@ -64,7 +64,7 @@ public static class UserManager
 								VALUES ($username, $password, $role)";
 			command.Parameters.AddWithValue("$username", user.Username);
 			command.Parameters.AddWithValue("$password", BCrypt.Net.BCrypt.HashPassword(user.Password));
-			command.Parameters.AddWithValue("$role", user.Role);
+			command.Parameters.AddWithValue("$role", role);
 			return command.ExecuteNonQuery() == 1;
 		}
 		catch
@@ -162,7 +162,6 @@ public static class UserManager
 			if (!reader.Read()) return null;
 			return new UserModel(
 				reader.GetString(reader.GetOrdinal("username")),
-				null,
 				reader.GetString(reader.GetOrdinal("role")));
 		}
 		catch
