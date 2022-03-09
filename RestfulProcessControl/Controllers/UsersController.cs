@@ -5,7 +5,7 @@ namespace RestfulProcessControl.Controllers;
 
 [Route("Users")]
 [ApiController]
-public class UsersHttpController : ControllerBase
+public class UsersController : ControllerBase
 {
 	/// <summary>
 	/// Gets all users from the database
