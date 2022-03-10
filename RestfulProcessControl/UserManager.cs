@@ -1,10 +1,10 @@
-﻿using RestfulProcessControl.Models;
+using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl;
 
 public static class UserManager
 {
-	private const string ConnectionString = @"Data Source=.\users.db; FailIfMissing=False";
+	private const string ConnectionString = @"Data Source=.\users.db";
 
 	/// <summary>
 	/// Gets all users
