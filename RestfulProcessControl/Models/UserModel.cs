@@ -5,7 +5,9 @@ namespace RestfulProcessControl.Models;
 
 public class UserModel
 {
+	[JsonInclude]
 	public string? Username { get; set; }
+	[JsonInclude]
 	public string? Role { get; set; }
 
 	public UserModel()

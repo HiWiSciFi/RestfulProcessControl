@@ -20,8 +20,9 @@ public static class Authenticator
 	/// Checks if a JWT is valid for this application
 	/// </summary>
 	/// <param name="token">The JWT to check for validity</param>
+	/// <param name="jwt">The JwtModel generated from the token string</param>
 	/// <returns>true, if the JWT is valid, false otherwise</returns>
-	public static bool IsTokenValid(string token) => new JwtModel(token).IsValid();
+	public static bool IsTokenValid(string token, out JwtModel jwt) => (jwt = new JwtModel(token)).IsValid();
 
 	/// <summary>
 	/// Checks if a JWT is valid for this application

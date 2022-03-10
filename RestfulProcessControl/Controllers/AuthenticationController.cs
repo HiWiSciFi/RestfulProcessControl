@@ -57,7 +57,7 @@ public class AuthenticationController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult RefreshJwtToken([FromQuery]string jwt)
 	{
-		var token = new JwtModel(jwt);
+		if (!Authenticator.IsTokenValid(jwt, out var token)) return Forbid();
 		if (token.Refresh(MaxSessionTime, MaxRefreshTime)) return Ok(token.ToString());
 		return Forbid();
 	}
@@ -70,5 +70,5 @@ public class AuthenticationController : ControllerBase
 	[RequireHttps]
 	[HttpGet("Valid")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
-	public IActionResult IsTokenValidRequest([FromQuery]string jwt) => Ok(Authenticator.IsTokenValid(jwt));
+	public IActionResult IsTokenValidRequest([FromQuery]string jwt) => Ok(Authenticator.IsTokenValid(jwt, out _));
 }

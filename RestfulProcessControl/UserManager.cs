@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
-using RestfulProcessControl.Models;
+﻿using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl;
 
@@ -13,27 +12,13 @@ public static class UserManager
 	/// <returns>A Collection of user models (password will always be null)</returns>
 	public static IEnumerable<UserModel>? GetAllUsers()
 	{
-		try
-		{
-			List<UserModel> users = new();
-
-			using var connection = new SqliteConnection(ConnectionString);
-			connection.Open();
-			var command = connection.CreateCommand();
-			command.CommandText = @"SELECT username, role FROM user";
-			using var reader = command.ExecuteReader();
-			while (reader.Read())
-			{
-				users.Add(
-					new UserModel(reader.GetString(reader.GetOrdinal("username")),
-						reader.GetString(reader.GetOrdinal("role"))));
-			}
-			return users;
-		}
-		catch
-		{
-			return null;
-		}
+		using var connection = new DatabaseConnection(ConnectionString);
+		if (!connection.Get().AddTable("user").AddColumn("username").AddColumn("role")
+			    .TryExecute(out var elementList)) return null;
+		List<UserModel> users = new();
+		for (var i = 0; i < elementList["username"].Count; i++)
+			users.Add(new UserModel((string) elementList["username"][i], (string) elementList["role"][i]));
+		return users;
 	}
 
 	/// <summary>
@@ -54,23 +39,11 @@ public static class UserManager
 	/// <returns>true if the user was created, false otherwise</returns>
 	public static bool CreateUser(in LoginModel user, string role)
 	{
-		try
-		{
-			using var connection = new SqliteConnection(ConnectionString);
-			connection.Open();
-
-			var command = connection.CreateCommand();
-			command.CommandText = @"INSERT INTO user (username, password, role)
-								VALUES ($username, $password, $role)";
-			command.Parameters.AddWithValue("$username", user.Username);
-			command.Parameters.AddWithValue("$password", BCrypt.Net.BCrypt.HashPassword(user.Password));
-			command.Parameters.AddWithValue("$role", role);
-			return command.ExecuteNonQuery() == 1;
-		}
-		catch
-		{
-			return false;
-		}
+		if (user.Username is null || user.Password is null) return false;
+		using var connection = new DatabaseConnection(ConnectionString);
+		return connection.Insert().SetTable("user").AddParameter("username", user.Username)
+			.AddParameter("password", BCrypt.Net.BCrypt.HashPassword(user.Password)).AddParameter("role", role)
+			.TryExecute();
 	}
 
 	/// <summary>
@@ -88,29 +61,10 @@ public static class UserManager
 	/// <returns></returns>
 	public static bool DeleteUser(string username, string? role)
 	{
-		try
-		{
-			using var connection = new SqliteConnection(ConnectionString);
-			connection.Open();
-
-			var command = connection.CreateCommand();
-			if (role is not null)
-			{
-				command.CommandText = @"DELETE FROM user WHERE username = $username AND role = $role";
-				command.Parameters.AddWithValue("$role", role);
-			}
-			else
-			{
-				command.CommandText = @"DELETE FROM user WHERE username = $username";
-			}
-
-			command.Parameters.AddWithValue("$username", username);
-			return command.ExecuteNonQuery() == 1;
-		}
-		catch
-		{
-			return false;
-		}
+		using var connection = new DatabaseConnection(ConnectionString);
+		return role is not null
+			? connection.Delete().SetTable("user").IfEqual("username", username).IfEqual("role", role).TryExecute()
+			: connection.Delete().SetTable("user").IfEqual("username", username).TryExecute();
 	}
 
 	/// <summary>
@@ -143,31 +97,15 @@ public static class UserManager
 	/// <returns>A UserModel containing the retrieved information, or null if user could not be found</returns>
 	public static UserModel? GetUser(string username, string? role)
 	{
-		try
-		{
-			using var connection = new SqliteConnection(ConnectionString);
-			connection.Open();
-			using var command = connection.CreateCommand();
-			if (role is not null)
-			{
-				command.CommandText = @"SELECT username, role FROM user WHERE username = $username AND role = $role";
-				command.Parameters.AddWithValue("$role", role);
-			}
-			else
-			{
-				command.CommandText = @"SELECT username, role FROM user WHERE username = $username";
-			}
-			command.Parameters.AddWithValue("$username", username);
-			using var reader = command.ExecuteReader();
-			if (!reader.Read()) return null;
-			return new UserModel(
-				reader.GetString(reader.GetOrdinal("username")),
-				reader.GetString(reader.GetOrdinal("role")));
-		}
-		catch
-		{
-			return null;
-		}
+		using var db = new DatabaseConnection(ConnectionString);
+		Dictionary<string, List<object>> elementList;
+		var success = role is not null
+			? db.Get().AddTable("user").AddColumn("username").AddColumn("role").IfEqual("username", username)
+				.IfEqual("role", role).TryExecute(out elementList)
+			: db.Get().AddTable("user").AddColumn("username").AddColumn("role").IfEqual("username", username)
+				.TryExecute(out elementList);
+		if (!success || elementList["username"].Count < 1) return null;
+		return new UserModel((string)elementList["username"][0], (string)elementList["role"][0]);
 	}
 
 	/// <summary>
@@ -178,21 +116,27 @@ public static class UserManager
 	/// <returns>true if the password authenticates the user, false otherwise</returns>
 	public static bool CheckPassword(string username, string password)
 	{
-		try
-		{
-			using var connection = new SqliteConnection(ConnectionString);
-			connection.Open();
-			using var command = connection.CreateCommand();
-			command.CommandText = @"SELECT password FROM user WHERE username = $username";
-			command.Parameters.AddWithValue("$username", username);
-			using var reader = command.ExecuteReader();
-			if (!reader.Read()) return false;
-			var pwhash = reader.GetString(reader.GetOrdinal("password"));
-			return BCrypt.Net.BCrypt.Verify(password, pwhash);
-		}
-		catch
-		{
-			return false;
-		}
+		using DatabaseConnection db = new(ConnectionString);
+		if (!db.Get().AddColumn("password").AddTable("user").IfEqual("username", username)
+			    .TryExecute(out var elementList)) return false;
+		if (elementList["password"].Count < 1) return false;
+		var pwHash = (string)elementList["password"][0];
+		return BCrypt.Net.BCrypt.Verify(password, pwHash);
+	}
+
+	/// <summary>
+	/// Changes a users password
+	/// </summary>
+	/// <param name="username">The username of the user whose password to edit</param>
+	/// <param name="oldPassword">The old password of the user</param>
+	/// <param name="newPassword">The new password to replace the old</param>
+	/// <returns>true if the operation was successful, false otherwise</returns>
+	public static bool ChangePassword(string username, string oldPassword, string newPassword)
+	{
+		if (!CheckPassword(username, oldPassword)) return false;
+		var pwHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+		using var db = new DatabaseConnection(ConnectionString);
+		return db.Edit().SetTable("user").IfEqual("username", username)
+			.AddEdit("password", pwHash).TryExecute();
 	}
 }

@@ -5,7 +5,9 @@ namespace RestfulProcessControl.Models;
 
 public class LoginModel
 {
+	[JsonInclude]
 	public string? Username { get; set; }
+	[JsonInclude]
 	public string? Password { get; set; }
 
 	public LoginModel()

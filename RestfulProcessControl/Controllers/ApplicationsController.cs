@@ -21,7 +21,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetAll([FromQuery]string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
 		return Ok(Apps);
 	}
 
@@ -39,7 +39,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult ReloadApplicationConfig([FromQuery]string jwt, [FromRoute]int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
 
 		if (id >= Apps.Count) return NotFound();
 		Apps[id].ReloadConfig();
@@ -60,7 +60,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetById([FromQuery]string jwt, [FromRoute]int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
 
 		if (id >= Apps.Count) return NotFound();
 		return Ok(Apps[id]);
@@ -79,7 +79,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetBackup([FromQuery]string jwt, [FromRoute]int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
 
 		Logger.Log(LogLevel.Information, "Creating and Downloading Backup of application {id}...", id);
 
