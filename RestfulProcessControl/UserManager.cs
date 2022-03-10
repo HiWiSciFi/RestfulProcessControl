@@ -4,7 +4,7 @@ namespace RestfulProcessControl;
 
 public static class UserManager
 {
-	private const string ConnectionString = @"Data Source=.\users.db";
+	private const string ConnectionString = @"Data Source=.\users.db; FailIfMissing=False";
 
 	/// <summary>
 	/// Gets all users
