@@ -16,14 +16,21 @@ public class JwtModel
 	/// </summary>
 	public class JwtPayload
 	{
-		[JsonPropertyName("sub")]
-		public string? Subject { get; set; }
-		[JsonPropertyName("role")]
-		public string? Role { get; set; }
-		[JsonPropertyName("iat")]
-		public int IssuedAt { get; set; }
-		[JsonPropertyName("exp")]
-		public int ExpirationTime { get; set; }
+		[JsonPropertyName("sub")] public string? Subject { get; set; }
+		[JsonPropertyName("role")] public string? RoleName { get; set; }
+		[JsonIgnore] private RoleModel? RoleObject { get; set; }
+		[JsonIgnore]
+		public RoleModel? Role =>
+			RoleName is null
+				? null
+				: RoleObject is null
+					? RoleObject = RoleManager.GetRole(RoleName)
+					: RoleObject.Name == RoleName
+						? RoleObject
+						: RoleObject = RoleManager.GetRole(RoleName);
+
+		[JsonPropertyName("iat")] public int IssuedAt { get; set; }
+		[JsonPropertyName("exp")] public int ExpirationTime { get; set; }
 	}
 
 	/// <summary>

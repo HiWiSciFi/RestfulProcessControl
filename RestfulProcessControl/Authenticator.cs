@@ -9,7 +9,7 @@ public static class Authenticator
 	/// </summary>
 	/// <param name="user">The user to authenticate</param>
 	/// <returns>true if the login data was correct, false otherwise</returns>
-	public static bool Authenticate(in LoginModel user)
+	public static bool Authenticate(LoginUserModel user)
 	{
 		Logger.Log(LogLevel.Information, "Authenticating user \"{0}\"", user.Username);
 		if (user.Username is null || user.Password is null) return false;
@@ -20,9 +20,16 @@ public static class Authenticator
 	/// Checks if a JWT is valid for this application
 	/// </summary>
 	/// <param name="token">The JWT to check for validity</param>
-	/// <param name="jwt">The JwtModel generated from the token string</param>
+	/// <param name="role">The RoleModel for the role the token authorizes</param>
 	/// <returns>true, if the JWT is valid, false otherwise</returns>
-	public static bool IsTokenValid(string token, out JwtModel jwt) => (jwt = new JwtModel(token)).IsValid();
+	public static bool IsTokenValid(string token, out RoleModel role)
+	{
+		var jwt = new JwtModel(token);
+		role = new RoleModel();
+		if (!jwt.IsValid()) return false;
+		role = jwt.Payload!.Role ?? new RoleModel(jwt.Payload.RoleName ?? string.Empty, 0);
+		return true;
+	}
 
 	/// <summary>
 	/// Checks if a JWT is valid for this application
@@ -37,7 +44,7 @@ public static class Authenticator
 	/// <param name="user">The User to create the JWT for</param>
 	/// <param name="maxSessionTime">The maximum session time (without refreshing)</param>
 	/// <returns>The JWT that has been created or null if it could not be created</returns>
-	public static JwtModel? CreateJwt(in UserModel user, int maxSessionTime)
+	public static JwtModel? CreateJwt(UserModel user, int maxSessionTime)
 	{
 		try
 		{
@@ -49,7 +56,7 @@ public static class Authenticator
 			header.Type = "JWT";
 
 			payload.Subject = user.Username;
-			payload.Role = user.Role;
+			payload.RoleName = user.Role;
 			payload.IssuedAt = UnixTime.Now;
 			payload.ExpirationTime = payload.IssuedAt + maxSessionTime;
 

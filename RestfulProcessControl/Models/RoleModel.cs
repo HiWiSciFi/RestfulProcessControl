@@ -7,7 +7,7 @@ public class RoleModel
 	[JsonInclude]
 	public string? Name { get; set; }
 	[JsonInclude]
-	public int Permissions { get; set; }
+	public long Permissions { get; set; }
 
 	public RoleModel()
 	{
@@ -15,26 +15,29 @@ public class RoleModel
 		Permissions = 0;
 	}
 
-	public RoleModel(string name, int permissions)
+	public RoleModel(string name, long permissions)
 	{
 		Name = name;
 		Permissions = permissions;
 	}
 
-	public static RoleModel? FromName(string name)
-	{
-		return null;
-	}
-
 	public bool HasPermission(string permissionName) =>
 		Enum.TryParse<PermissionId>(permissionName, out var permission) && HasPermission(permission);
 
-	public bool HasPermission(PermissionId permission) => ((Permissions >> (int) permission) & 1) == 1;
+	public bool HasPermission(PermissionId permission) => ((Permissions >> (int)permission) & 1) == 1;
+
+	public static bool HasPermission(string roleName, PermissionId permission, out RoleModel? role)
+	{
+		role = RoleManager.GetRole(roleName);
+		return role?.HasPermission(permission) == true;
+	}
 }
 
+// max. of 64 permissions
 public enum PermissionId
 {
-	AccessApps,
-	ControlApps,
-	AccessUsers
+	CreateUser,
+	DeleteUser,
+	EditUser,
+	GetUsers
 }

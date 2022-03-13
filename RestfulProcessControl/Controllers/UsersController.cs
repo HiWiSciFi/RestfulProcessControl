@@ -18,7 +18,8 @@ public class UsersController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetAllUsers([FromQuery] string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUsers))
+			return Forbid();
 		var users = UserManager.GetAllUsers();
 		return users is null ? Forbid() : Ok(users);
 	}
@@ -27,17 +28,17 @@ public class UsersController : ControllerBase
 	/// Creates a user
 	/// </summary>
 	/// <param name="jwt">The JWT to authorize the request</param>
-	/// <param name="user">The username and password for the new user</param>
-	/// <param name="role">The role to assign the user to</param>
+	/// <param name="user">The user information for the new user</param>
 	/// <returns>nothing</returns>
 	[RequireHttps]
-	[HttpPost("Create/User/{role}")]
+	[HttpPost("Create")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult CreateUser([FromQuery] string jwt, [FromBody] LoginModel user, [FromRoute] string role)
+	public IActionResult CreateUser([FromQuery] string jwt, [FromBody] CreateUserModel user)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
-		if (!UserManager.CreateUser(in user, role)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.CreateUser))
+			return Forbid();
+		if (!UserManager.CreateUser(user)) return Forbid();
 		return Ok();
 	}
 
@@ -53,7 +54,8 @@ public class UsersController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult DeleteUser([FromQuery] string jwt, [FromRoute] string username)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.DeleteUser))
+			return Forbid();
 		if (!UserManager.DeleteUser(username, null)) return Forbid();
 		return Ok();
 	}
@@ -62,21 +64,20 @@ public class UsersController : ControllerBase
 	/// Edits a users password
 	/// </summary>
 	/// <param name="jwt">The JWT to authorize the request</param>
-	/// <param name="username">The username of the user</param>
-	/// <param name="oldPw">The users old password</param>
-	/// <param name="newPw">The users new password</param>
+	/// <param name="user">The user information of the user</param>
+	/// <param name="username">The username of the user whose password to change</param>
 	/// <returns>nothing</returns>
 	[RequireHttps]
 	[HttpPatch("User/{username}/Edit/Password")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public IActionResult EditPassword([FromQuery] string jwt, [FromRoute] string username, [FromQuery] string oldPw,
-		[FromQuery] string newPw)
+	public IActionResult EditPassword([FromQuery] string jwt, [FromBody] EditPasswordUserModel user, [FromRoute] string username)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
-		if (!UserManager.HasUser(username, null)) return NotFound();
-		if (!UserManager.ChangePassword(username, oldPw, newPw)) return Forbid();
+		if (user.Username != username || !Authenticator.IsTokenValid(jwt, out var role) ||
+		    !role.HasPermission(PermissionId.EditUser)) return Forbid();
+		if (!UserManager.HasUser(user.Username, null)) return NotFound();
+		if (!UserManager.ChangePassword(user)) return Forbid();
 		return Ok();
 	}
 
@@ -93,27 +94,9 @@ public class UsersController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUsers))
+			return Forbid();
 		var user = UserManager.GetUser(username, null);
-		return user is not null ? Ok(user) : NotFound();
-	}
-
-	/// <summary>
-	/// Gets a user by their role and username
-	/// </summary>
-	/// <param name="jwt">The JWT to authorize the request</param>
-	/// <param name="username">The username of the user</param>
-	/// <param name="role">The role of the user</param>
-	/// <returns>A UserModel containing the information of the requested user</returns>
-	[RequireHttps]
-	[HttpGet("Role/{role}/User/{username}")]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
-	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
-	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
-		var user = UserManager.GetUser(username, role);
 		return user is not null ? Ok(user) : NotFound();
 	}
 }

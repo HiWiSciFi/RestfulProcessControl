@@ -17,7 +17,7 @@ namespace RestfulProcessControl.Models;
 // postShutdownShellCalls : string[]
 // restartOnCrash : bool
 
-public struct ApplicationConfigModel
+public class ApplicationConfigModel
 {
 	public string? FileName { get; set; }
 	public string? Arguments { get; set; }

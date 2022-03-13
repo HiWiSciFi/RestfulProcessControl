@@ -4,15 +4,13 @@ namespace RestfulProcessControl;
 
 public static class UserManager
 {
-	private const string ConnectionString = @"Data Source=.\users.db";
-
 	/// <summary>
 	/// Gets all users
 	/// </summary>
 	/// <returns>A Collection of user models (password will always be null)</returns>
 	public static IEnumerable<UserModel>? GetAllUsers()
 	{
-		using var connection = new DatabaseConnection(ConnectionString);
+		using var connection = new DatabaseConnection(Globals.ConnectionString);
 		if (!connection.Get().AddTable("user").AddColumn("username").AddColumn("role")
 			    .TryExecute(out var elementList)) return null;
 		List<UserModel> users = new();
@@ -29,20 +27,19 @@ public static class UserManager
 	/// <param name="role">The role for the user</param>
 	/// <returns>true if the user was created, false otherwise</returns>
 	public static bool CreateUser(string username, string password, string role) =>
-		CreateUser(new LoginModel(username, password), role);
+		CreateUser(new CreateUserModel(username, password, role));
 
 	/// <summary>
 	/// Creates a user in the database from a UserModel
 	/// </summary>
-	/// <param name="user">The LoginModel to create the user from</param>
-	/// <param name="role">The role for the created user</param>
+	/// <param name="user">The CreateUserModel to create the user from</param>
 	/// <returns>true if the user was created, false otherwise</returns>
-	public static bool CreateUser(in LoginModel user, string role)
+	public static bool CreateUser(CreateUserModel user)
 	{
-		if (user.Username is null || user.Password is null) return false;
-		using var connection = new DatabaseConnection(ConnectionString);
+		if (user.Username is null || user.Password is null || user.Role is null) return false;
+		using var connection = new DatabaseConnection(Globals.ConnectionString);
 		return connection.Insert().SetTable("user").AddParameter("username", user.Username)
-			.AddParameter("password", BCrypt.Net.BCrypt.HashPassword(user.Password)).AddParameter("role", role)
+			.AddParameter("password", BCrypt.Net.BCrypt.HashPassword(user.Password)).AddParameter("role", user.Role)
 			.TryExecute();
 	}
 
@@ -51,7 +48,7 @@ public static class UserManager
 	/// </summary>
 	/// <param name="user">The user to delete from the database (role ignored if null, password always ignored)</param>
 	/// <returns>if the deletion was successful</returns>
-	public static bool DeleteUser(in UserModel user) => user.Username is not null && DeleteUser(user.Username, user.Role);
+	public static bool DeleteUser(UserModel user) => user.Username is not null && DeleteUser(user.Username, user.Role);
 
 	/// <summary>
 	/// Deletes a user from the database
@@ -61,7 +58,7 @@ public static class UserManager
 	/// <returns></returns>
 	public static bool DeleteUser(string username, string? role)
 	{
-		using var connection = new DatabaseConnection(ConnectionString);
+		using var connection = new DatabaseConnection(Globals.ConnectionString);
 		return role is not null
 			? connection.Delete().SetTable("user").IfEqual("username", username).IfEqual("role", role).TryExecute()
 			: connection.Delete().SetTable("user").IfEqual("username", username).TryExecute();
@@ -72,7 +69,7 @@ public static class UserManager
 	/// </summary>
 	/// <param name="user">The user to check</param>
 	/// <returns>true if the user exists, false otherwise</returns>
-	public static bool HasUser(in UserModel user) => user.Username is not null && HasUser(user.Username, user.Role);
+	public static bool HasUser(UserModel user) => user.Username is not null && HasUser(user.Username, user.Role);
 
 	/// <summary>
 	/// Checks if the given user exists
@@ -85,9 +82,16 @@ public static class UserManager
 	/// <summary>
 	/// Gets a user from the database
 	/// </summary>
+	/// <param name="username">The username of the user to get</param>
+	/// <returns>A UserModel containing the retrieved information, or null if user could not be found</returns>
+	public static UserModel? GetUser(string username) => GetUser(username, null);
+
+	/// <summary>
+	/// Gets a user from the database
+	/// </summary>
 	/// <param name="user">The user to get</param>
 	/// <returns>A UserModel containing the retrieved information, or null if user could not be found</returns>
-	public static UserModel? GetUser(in UserModel user) => user.Username is not null ? GetUser(user.Username, user.Role) : null;
+	public static UserModel? GetUser(UserModel user) => user.Username is not null ? GetUser(user.Username, user.Role) : null;
 
 	/// <summary>
 	/// Gets a user from the database
@@ -97,7 +101,7 @@ public static class UserManager
 	/// <returns>A UserModel containing the retrieved information, or null if user could not be found</returns>
 	public static UserModel? GetUser(string username, string? role)
 	{
-		using var db = new DatabaseConnection(ConnectionString);
+		using var db = new DatabaseConnection(Globals.ConnectionString);
 		Dictionary<string, List<object>> elementList;
 		var success = role is not null
 			? db.Get().AddTable("user").AddColumn("username").AddColumn("role").IfEqual("username", username)
@@ -116,13 +120,24 @@ public static class UserManager
 	/// <returns>true if the password authenticates the user, false otherwise</returns>
 	public static bool CheckPassword(string username, string password)
 	{
-		using DatabaseConnection db = new(ConnectionString);
+		using DatabaseConnection db = new(Globals.ConnectionString);
 		if (!db.Get().AddColumn("password").AddTable("user").IfEqual("username", username)
 			    .TryExecute(out var elementList)) return false;
 		if (elementList["password"].Count < 1) return false;
 		var pwHash = (string)elementList["password"][0];
 		return BCrypt.Net.BCrypt.Verify(password, pwHash);
 	}
+
+	/// <summary>
+	/// Changes a users password
+	/// </summary>
+	/// <param name="user">The user information necessary to change the password</param>
+	/// <returns>true if the action was successful, false otherwise</returns>
+	public static bool ChangePassword(EditPasswordUserModel user) => user.Username is not null &&
+	                                                                    user.PasswordOld is not null &&
+	                                                                    user.PasswordNew is not null &&
+	                                                                    ChangePassword(user.Username, user.PasswordOld,
+		                                                                    user.PasswordNew);
 
 	/// <summary>
 	/// Changes a users password
@@ -135,7 +150,7 @@ public static class UserManager
 	{
 		if (!CheckPassword(username, oldPassword)) return false;
 		var pwHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-		using var db = new DatabaseConnection(ConnectionString);
+		using var db = new DatabaseConnection(Globals.ConnectionString);
 		return db.Edit().SetTable("user").IfEqual("username", username)
 			.AddEdit("password", pwHash).TryExecute();
 	}

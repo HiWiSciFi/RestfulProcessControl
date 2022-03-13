@@ -24,7 +24,7 @@ public class AuthenticationController : ControllerBase
 	public IActionResult TestGet()
 	{
 		UserModel user = new("Test", "admin");
-		return Ok(Authenticator.CreateJwt(in user, 3600)!.ToString());
+		return Ok(Authenticator.CreateJwt(user, 3600)!.ToString());
 	}
 
 	/// <summary>
@@ -36,11 +36,11 @@ public class AuthenticationController : ControllerBase
 	[HttpPost]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult GetJwtToken([FromBody]LoginModel user)
+	public IActionResult GetJwtToken([FromBody]LoginUserModel user)
 	{
-		if (!Authenticator.Authenticate(in user)) return Forbid();
+		if (!Authenticator.Authenticate(user)) return Forbid();
 		var uuser = (UserModel) user;
-		var jwt = Authenticator.CreateJwt(in uuser, MaxSessionTime);
+		var jwt = Authenticator.CreateJwt(uuser, MaxSessionTime);
 		if (jwt is null) return Forbid();
 		Logger.Log(LogLevel.Information, "Created JWT for user {0}: {1}", user.Username, jwt.ToString());
 		return Ok(jwt.ToString());
@@ -57,7 +57,8 @@ public class AuthenticationController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult RefreshJwtToken([FromQuery]string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var token)) return Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
+		var token = new JwtModel(jwt);
 		if (token.Refresh(MaxSessionTime, MaxRefreshTime)) return Ok(token.ToString());
 		return Forbid();
 	}
