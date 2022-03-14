@@ -2,13 +2,13 @@
 
 namespace RestfulProcessControl;
 
-public class ApplicationManager
+public class Application
 {
 	public string FolderName { get; }
 	public ApplicationConfigModel? Config { get; private set; }
 	public bool Running { get; private set; }
 
-	public ApplicationManager()
+	public Application()
 	{
 		FolderName = "Testapp";
 		Config = null;

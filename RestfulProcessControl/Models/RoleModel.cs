@@ -32,17 +32,3 @@ public class RoleModel
 		return role?.HasPermission(permission) == true;
 	}
 }
-
-// max. of 64 permissions
-public enum PermissionId
-{
-	CreateUser,
-	DeleteUser,
-	EditUser,
-	GetUser,
-
-	CreateRole,
-	DeleteRole,
-	EditRole,
-	GetRole
-}
