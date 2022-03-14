@@ -20,26 +20,26 @@ public static class UserManager
 	}
 
 	/// <summary>
+	/// Creates a user in the database from a UserModel
+	/// </summary>
+	/// <param name="user">The CreateUserModel to create the user from</param>
+	/// <returns>true if the user was created, false otherwise</returns>
+	public static bool CreateUser(CreateUserModel user) => user.Username is not null && user.Password is not null &&
+	                                                       user.Role is not null && CreateUser(user.Username,
+		                                                       user.Password, user.Role);
+
+	/// <summary>
 	/// Creates a user in the database from the specified parameters
 	/// </summary>
 	/// <param name="username">The username for the user</param>
 	/// <param name="password">The unencrypted password for the user</param>
 	/// <param name="role">The role for the user</param>
 	/// <returns>true if the user was created, false otherwise</returns>
-	public static bool CreateUser(string username, string password, string role) =>
-		CreateUser(new CreateUserModel(username, password, role));
-
-	/// <summary>
-	/// Creates a user in the database from a UserModel
-	/// </summary>
-	/// <param name="user">The CreateUserModel to create the user from</param>
-	/// <returns>true if the user was created, false otherwise</returns>
-	public static bool CreateUser(CreateUserModel user)
+	public static bool CreateUser(string username, string password, string role)
 	{
-		if (user.Username is null || user.Password is null || user.Role is null) return false;
 		using var connection = new DatabaseConnection(Globals.ConnectionString);
-		return connection.Insert().SetTable("user").AddParameter("username", user.Username)
-			.AddParameter("password", BCrypt.Net.BCrypt.HashPassword(user.Password)).AddParameter("role", user.Role)
+		return connection.Insert().SetTable("user").AddParameter("username", username)
+			.AddParameter("password", BCrypt.Net.BCrypt.HashPassword(password)).AddParameter("role", role)
 			.TryExecute();
 	}
 
