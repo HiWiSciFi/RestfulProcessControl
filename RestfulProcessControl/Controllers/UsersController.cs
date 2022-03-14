@@ -18,7 +18,7 @@ public class UsersController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetAllUsers([FromQuery] string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUsers))
+		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUser))
 			return Forbid();
 		var users = UserManager.GetAllUsers();
 		return users is null ? Forbid() : Ok(users);
@@ -92,9 +92,9 @@ public class UsersController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username)
+	public IActionResult GetUser([FromQuery] string jwt, [FromRoute] string username)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUsers))
+		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUser))
 			return Forbid();
 		var user = UserManager.GetUser(username, null);
 		return user is not null ? Ok(user) : NotFound();

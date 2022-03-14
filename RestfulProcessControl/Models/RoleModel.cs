@@ -39,5 +39,10 @@ public enum PermissionId
 	CreateUser,
 	DeleteUser,
 	EditUser,
-	GetUsers
+	GetUser,
+
+	CreateRole,
+	DeleteRole,
+	EditRole,
+	GetRole
 }
