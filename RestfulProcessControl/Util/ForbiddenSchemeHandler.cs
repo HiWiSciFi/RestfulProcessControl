@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 
-namespace RestfulProcessControl;
+namespace RestfulProcessControl.Util;
 
 public class ForbiddenSchemeHandler : IAuthenticationHandler
 {

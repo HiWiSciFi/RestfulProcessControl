@@ -1,4 +1,4 @@
-﻿using RestfulProcessControl.JsonContext;
+﻿using RestfulProcessControl.Util.JsonContext;
 using System.Text.Json;
 
 namespace RestfulProcessControl.Models;

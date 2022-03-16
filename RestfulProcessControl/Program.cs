@@ -1,3 +1,5 @@
+using RestfulProcessControl.Util;
+
 namespace RestfulProcessControl;
 
 public static class Program
@@ -104,6 +106,8 @@ public static class Program
 	/// </summary>
 	private static void InitializeProgram()
 	{
+		if (!Globals.Reload()) Logger.LogWarning("Reloading Globals failed!");
+		Logger.LogInformation("Database ConnectionString: \"{0}\"", Globals.ConnectionString);
 		ApplicationManager.LoadAll();
 	}
 

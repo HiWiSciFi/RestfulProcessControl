@@ -2,7 +2,7 @@
 using System.Data;
 using System.Text;
 
-namespace RestfulProcessControl;
+namespace RestfulProcessControl.Util;
 
 public class DatabaseConnection : IDisposable
 {

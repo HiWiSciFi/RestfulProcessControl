@@ -18,7 +18,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetAll([FromQuery] string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetApplication))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetApplication))
 			return Forbid();
 		return Ok(ApplicationManager.GetApplications());
 	}
@@ -37,7 +37,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public async Task<IActionResult> ReloadApplicationConfig([FromQuery] string jwt, [FromRoute] int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.EditApplication))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.EditApplication))
 			return Forbid();
 		if (ApplicationManager.GetApp(id) is null) return NotFound();
 		return await ApplicationManager.ReloadConfig(id) ? Ok() : UnprocessableEntity();
@@ -57,7 +57,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetById([FromQuery] string jwt, [FromRoute] int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetApplication))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetApplication))
 			return Forbid();
 		var app = ApplicationManager.GetApp(id);
 		return app is null ? NotFound() : Ok(app);
@@ -76,7 +76,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public async Task<IActionResult> CreateBackup([FromQuery] string jwt, [FromRoute] int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.CreateBackup))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.CreateBackup))
 			return Forbid();
 		var found = await ApplicationManager.CreateBackup(id);
 		return found ? Ok() : NotFound();
@@ -95,7 +95,7 @@ public class ApplicationsController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public async Task<IActionResult> GetBackup([FromQuery] string jwt, [FromRoute] int id)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.DownloadBackup))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.DownloadBackup))
 			return Forbid();
 		var fs = await ApplicationManager.GetBackupStream(id);
 		if (fs is null) return NotFound();

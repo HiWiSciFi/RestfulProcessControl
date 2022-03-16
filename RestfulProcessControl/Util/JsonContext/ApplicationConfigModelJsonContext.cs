@@ -1,10 +1,10 @@
 ﻿using RestfulProcessControl.Models;
 using System.Text.Json.Serialization;
 
-namespace RestfulProcessControl.JsonContext;
+namespace RestfulProcessControl.Util.JsonContext;
 
-[JsonSerializable(typeof(EditPasswordUserModel))]
+[JsonSerializable(typeof(ApplicationConfigModel))]
 [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default,
 	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class EditPasswordUserModelJsonContext : JsonSerializerContext
+public partial class ApplicationConfigModelJsonContext : JsonSerializerContext
 { }

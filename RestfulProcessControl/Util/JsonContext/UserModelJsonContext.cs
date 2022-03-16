@@ -1,7 +1,7 @@
 ﻿using RestfulProcessControl.Models;
 using System.Text.Json.Serialization;
 
-namespace RestfulProcessControl.JsonContext;
+namespace RestfulProcessControl.Util.JsonContext;
 
 [JsonSerializable(typeof(UserModel))]
 [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default,

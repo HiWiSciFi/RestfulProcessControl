@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RestfulProcessControl.Models;
+using RestfulProcessControl.Util;
 
 namespace RestfulProcessControl.Controllers;
 
@@ -21,7 +22,7 @@ public class AuthenticationController : ControllerBase
 	public IActionResult TestGet()
 	{
 		UserModel user = new("Test", "admin");
-		return Ok(Authenticator.CreateJwt(user, 3600)!.ToString());
+		return Ok(AuthenticationManager.CreateJwt(user, 3600)!.ToString());
 	}
 
 	/// <summary>
@@ -35,9 +36,9 @@ public class AuthenticationController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetJwtToken([FromBody] LoginUserModel user)
 	{
-		if (!Authenticator.Authenticate(user)) return Forbid();
+		if (!AuthenticationManager.Authenticate(user)) return Forbid();
 		var uuser = (UserModel)user;
-		var jwt = Authenticator.CreateJwt(uuser, MaxSessionTime);
+		var jwt = AuthenticationManager.CreateJwt(uuser, MaxSessionTime);
 		if (jwt is null) return Forbid();
 		Logger.LogInformation("Created JWT for user {0}: {1}", user.Username, jwt.ToString());
 		return Ok(jwt.ToString());
@@ -54,7 +55,7 @@ public class AuthenticationController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult RefreshJwtToken([FromQuery] string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
+		if (!AuthenticationManager.IsTokenValid(jwt, out _)) return Forbid();
 		var token = new JwtModel(jwt);
 		if (token.Refresh(MaxSessionTime, MaxRefreshTime)) return Ok(token.ToString());
 		return Forbid();
@@ -68,5 +69,5 @@ public class AuthenticationController : ControllerBase
 	[RequireHttps]
 	[HttpGet("Valid")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
-	public IActionResult IsTokenValidRequest([FromQuery] string jwt) => Ok(Authenticator.IsTokenValid(jwt, out _));
+	public IActionResult IsTokenValidRequest([FromQuery] string jwt) => Ok(AuthenticationManager.IsTokenValid(jwt, out _));
 }

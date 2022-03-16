@@ -19,7 +19,7 @@ public class RolesController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult GetRoles([FromQuery] string jwt)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetRole))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetRole))
 			return Forbid();
 		return Ok(RoleManager.GetRoles());
 	}
@@ -37,7 +37,7 @@ public class RolesController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult GetRole([FromQuery] string jwt, [FromRoute] string role)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole))
 			return Forbid();
 		var rm = RoleManager.GetRole(role);
 		return rm is null ? NotFound() : Ok(rm);
@@ -56,7 +56,7 @@ public class RolesController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult CreateRole([FromQuery] string jwt, [FromBody] RoleModel roleModel)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var jrole) ||
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) ||
 			!jrole.HasPermission(PermissionId.CreateRole)) return Forbid();
 		return RoleManager.CreateRole(roleModel)
 			? Created(
@@ -78,7 +78,7 @@ public class RolesController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult DeleteRole([FromQuery] string jwt, [FromRoute] string role)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.DeleteRole))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.DeleteRole))
 			return Forbid();
 		return RoleManager.DeleteRole(role) ? Ok() : NotFound();
 	}
@@ -98,7 +98,7 @@ public class RolesController : ControllerBase
 	public IActionResult SetRolePermissions([FromQuery] string jwt, [FromRoute] string role,
 		[FromBody] long permissions)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.EditRole))
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.EditRole))
 			return Forbid();
 		return RoleManager.SetRolePermissions(role, permissions) ? Ok() : NotFound();
 	}
@@ -117,7 +117,7 @@ public class RolesController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
 	{
-		if (!Authenticator.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
 			!jrole.HasPermission(PermissionId.GetUser)) return Forbid();
 		var user = UserManager.GetUser(username, role);
 		return user is not null ? Ok(user) : NotFound();

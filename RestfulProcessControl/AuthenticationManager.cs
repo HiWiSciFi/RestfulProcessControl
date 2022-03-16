@@ -1,8 +1,9 @@
 ﻿using RestfulProcessControl.Models;
+using RestfulProcessControl.Util;
 
 namespace RestfulProcessControl;
 
-public static class Authenticator
+public static class AuthenticationManager
 {
 	/// <summary>
 	/// Authenticates a user in the database

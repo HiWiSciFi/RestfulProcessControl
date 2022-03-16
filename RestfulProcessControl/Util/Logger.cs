@@ -1,4 +1,4 @@
-﻿namespace RestfulProcessControl;
+﻿namespace RestfulProcessControl.Util;
 
 public static class Logger
 {
