@@ -11,7 +11,7 @@ public static class Authenticator
 	/// <returns>true if the login data was correct, false otherwise</returns>
 	public static bool Authenticate(LoginUserModel user)
 	{
-		Logger.Log(LogLevel.Information, "Authenticating user \"{0}\"", user.Username);
+		Logger.LogInformation("Authenticating user \"{0}\"", user.Username);
 		if (user.Username is null || user.Password is null) return false;
 		return UserManager.CheckPassword(user.Username, user.Password);
 	}

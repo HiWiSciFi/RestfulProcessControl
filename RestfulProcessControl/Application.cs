@@ -18,18 +18,23 @@ public class Application
 	/// <summary>
 	/// Reloads the application configuration from the application directory
 	/// </summary>
-	public void ReloadConfig() => Config = LoadConfig();
+	public async Task<ApplicationConfigModel?> ReloadConfig()
+	{
+		Config = await LoadConfig();
+		return Config;
+	}
 
 	/// <summary>
 	/// Loads the configuration from the application directory
 	/// </summary>
 	/// <returns>A Configuration if one could be loaded</returns>
-	private ApplicationConfigModel? LoadConfig() {
-		Logger.Log(LogLevel.Information, "Loading Configuration for \"{0}\"...", FolderName);
+	private Task<ApplicationConfigModel?> LoadConfig()
+	{
+		Logger.LogInformation("Loading Configuration for \"{0}\"...", FolderName);
 		var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "apps", FolderName, "config.json");
-		if (!System.IO.File.Exists(jsonFilePath)) return null;
+		if (!System.IO.File.Exists(jsonFilePath)) return Task.FromResult<ApplicationConfigModel?>(null);
 		var jsonString = System.IO.File.ReadAllText(jsonFilePath);
-		return ApplicationConfigModel.Deserialize(jsonString);
+		return Task.FromResult(ApplicationConfigModel.Deserialize(jsonString));
 	}
 
 	/// <summary>
@@ -38,7 +43,7 @@ public class Application
 	/// <returns>True, if successful, false otherwise</returns>
 	public bool Start()
 	{
-		Logger.Log(LogLevel.Information, "Starting application \"{0}\"...", FolderName);
+		Logger.LogInformation("Starting application \"{0}\"...", FolderName);
 		Running = false;
 		return false;
 	}
@@ -49,7 +54,7 @@ public class Application
 	/// <returns>True if successful, false otherwise</returns>
 	public bool Stop()
 	{
-		Logger.Log(LogLevel.Information, "Stopping application \"{0}\"...", FolderName);
+		Logger.LogInformation("Stopping application \"{0}\"...", FolderName);
 		Running = false;
 		return false;
 	}

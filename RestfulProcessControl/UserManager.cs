@@ -12,10 +12,10 @@ public static class UserManager
 	{
 		using var connection = new DatabaseConnection(Globals.ConnectionString);
 		if (!connection.Get().AddTable("user").AddColumn("username").AddColumn("role")
-			    .TryExecute(out var elementList)) return null;
+				.TryExecute(out var elementList)) return null;
 		List<UserModel> users = new();
 		for (var i = 0; i < elementList["username"].Count; i++)
-			users.Add(new UserModel((string) elementList["username"][i], (string) elementList["role"][i]));
+			users.Add(new UserModel((string)elementList["username"][i], (string)elementList["role"][i]));
 		return users;
 	}
 
@@ -25,8 +25,8 @@ public static class UserManager
 	/// <param name="user">The CreateUserModel to create the user from</param>
 	/// <returns>true if the user was created, false otherwise</returns>
 	public static bool CreateUser(CreateUserModel user) => user.Username is not null && user.Password is not null &&
-	                                                       user.Role is not null && CreateUser(user.Username,
-		                                                       user.Password, user.Role);
+														   user.Role is not null && CreateUser(user.Username,
+															   user.Password, user.Role);
 
 	/// <summary>
 	/// Creates a user in the database from the specified parameters
@@ -122,7 +122,7 @@ public static class UserManager
 	{
 		using DatabaseConnection db = new(Globals.ConnectionString);
 		if (!db.Get().AddColumn("password").AddTable("user").IfEqual("username", username)
-			    .TryExecute(out var elementList)) return false;
+				.TryExecute(out var elementList)) return false;
 		if (elementList["password"].Count < 1) return false;
 		var pwHash = (string)elementList["password"][0];
 		return BCrypt.Net.BCrypt.Verify(password, pwHash);
@@ -134,10 +134,10 @@ public static class UserManager
 	/// <param name="user">The user information necessary to change the password</param>
 	/// <returns>true if the action was successful, false otherwise</returns>
 	public static bool ChangePassword(EditPasswordUserModel user) => user.Username is not null &&
-	                                                                    user.PasswordOld is not null &&
-	                                                                    user.PasswordNew is not null &&
-	                                                                    ChangePassword(user.Username, user.PasswordOld,
-		                                                                    user.PasswordNew);
+																		user.PasswordOld is not null &&
+																		user.PasswordNew is not null &&
+																		ChangePassword(user.Username, user.PasswordOld,
+																			user.PasswordNew);
 
 	/// <summary>
 	/// Changes a users password

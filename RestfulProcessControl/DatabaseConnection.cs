@@ -1,6 +1,6 @@
-﻿using System.Data;
+﻿using Microsoft.Data.Sqlite;
+using System.Data;
 using System.Text;
-using Microsoft.Data.Sqlite;
 
 namespace RestfulProcessControl;
 
@@ -204,7 +204,7 @@ public class DatabaseConnection : IDisposable
 
 		protected override bool GenerateCommand()
 		{
-			if  (Tables.Count < 1 || Columns.Count < 1) return false;
+			if (Tables.Count < 1 || Columns.Count < 1) return false;
 			try
 			{
 				StringBuilder commandTextBuilder = new();

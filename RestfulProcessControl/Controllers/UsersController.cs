@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl.Controllers;
@@ -31,15 +32,17 @@ public class UsersController : ControllerBase
 	/// <param name="user">The user information for the new user</param>
 	/// <returns>nothing</returns>
 	[RequireHttps]
-	[HttpPost("Create")]
-	[ProducesResponseType(StatusCodes.Status200OK)]
+	[HttpPost("User")]
+	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	public IActionResult CreateUser([FromQuery] string jwt, [FromBody] CreateUserModel user)
 	{
 		if (!Authenticator.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.CreateUser))
 			return Forbid();
 		if (!UserManager.CreateUser(user)) return Forbid();
-		return Ok();
+		return Created(
+			new Uri(Request.GetEncodedUrl()).GetLeftPart(UriPartial.Authority) + "/Users/User/" + user.Username,
+			UserManager.GetUser(user.Username!));
 	}
 
 	/// <summary>
@@ -75,7 +78,7 @@ public class UsersController : ControllerBase
 	public IActionResult EditPassword([FromQuery] string jwt, [FromBody] EditPasswordUserModel user, [FromRoute] string username)
 	{
 		if (user.Username != username || !Authenticator.IsTokenValid(jwt, out var role) ||
-		    !role.HasPermission(PermissionId.EditUser)) return Forbid();
+			!role.HasPermission(PermissionId.EditUser)) return Forbid();
 		if (!UserManager.HasUser(user.Username, null)) return NotFound();
 		if (!UserManager.ChangePassword(user)) return Forbid();
 		return Ok();

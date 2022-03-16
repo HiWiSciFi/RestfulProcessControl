@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using RestfulProcessControl.JsonContext;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace RestfulProcessControl.Models;
@@ -149,27 +150,3 @@ public class EditPasswordUserModel
 		catch { return null; }
 	}
 }
-
-[JsonSerializable(typeof(UserModel))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default,
-	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class UserModelJsonContext : JsonSerializerContext
-{ }
-
-[JsonSerializable(typeof(LoginUserModel))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default,
-	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class LoginUserModelJsonContext : JsonSerializerContext
-{ }
-
-[JsonSerializable(typeof(CreateUserModel))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default,
-	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class CreateUserModelJsonContext : JsonSerializerContext
-{ }
-
-[JsonSerializable(typeof(EditPasswordUserModel))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default,
-	PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class EditPasswordUserModelJsonContext : JsonSerializerContext
-{ }

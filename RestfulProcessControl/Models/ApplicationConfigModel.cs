@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using RestfulProcessControl.JsonContext;
+using System.Text.Json;
 
 namespace RestfulProcessControl.Models;
 
@@ -34,7 +34,8 @@ public class ApplicationConfigModel
 	public string[]? PostShutdownShellCalls { get; set; }
 	public string[]? PostShutdownStdinCalls { get; set; }
 
-	public ApplicationConfigModel() {
+	public ApplicationConfigModel()
+	{
 		FileName = null;
 		Arguments = null;
 		RestartOnCrash = false;
@@ -50,14 +51,11 @@ public class ApplicationConfigModel
 	}
 
 	public string Serialize() => Serialize(this);
-	public static string Serialize(ApplicationConfigModel data) => JsonSerializer.Serialize(data, ApplicationConfigJsonContext.Default.ApplicationConfigModel);
+	public static string Serialize(ApplicationConfigModel data) => JsonSerializer.Serialize(data, ApplicationConfigModelJsonContext.Default.ApplicationConfigModel);
 
-	public static ApplicationConfigModel? Deserialize(string data) {
-		try { return JsonSerializer.Deserialize(data, ApplicationConfigJsonContext.Default.ApplicationConfigModel); }
+	public static ApplicationConfigModel? Deserialize(string data)
+	{
+		try { return JsonSerializer.Deserialize(data, ApplicationConfigModelJsonContext.Default.ApplicationConfigModel); }
 		catch { return null; }
 	}
 }
-
-[JsonSerializable(typeof(ApplicationConfigModel))]
-[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class ApplicationConfigJsonContext : JsonSerializerContext { }

@@ -10,9 +10,6 @@ public class AuthenticationController : ControllerBase
 	public const int MaxRefreshTime = 100; // seconds
 	public const int MaxSessionTime = 20; // seconds
 
-	private readonly ILogger<AuthenticationController> _logger;
-	public AuthenticationController(ILogger<AuthenticationController> logger) => _logger = logger;
-
 	// TODO: REMOVE BEFORE DEPLOYMENT !!!
 	/// <summary>
 	/// Creates a JWT with administrator privileges and a session time of one hour
@@ -36,13 +33,13 @@ public class AuthenticationController : ControllerBase
 	[HttpPost]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult GetJwtToken([FromBody]LoginUserModel user)
+	public IActionResult GetJwtToken([FromBody] LoginUserModel user)
 	{
 		if (!Authenticator.Authenticate(user)) return Forbid();
-		var uuser = (UserModel) user;
+		var uuser = (UserModel)user;
 		var jwt = Authenticator.CreateJwt(uuser, MaxSessionTime);
 		if (jwt is null) return Forbid();
-		Logger.Log(LogLevel.Information, "Created JWT for user {0}: {1}", user.Username, jwt.ToString());
+		Logger.LogInformation("Created JWT for user {0}: {1}", user.Username, jwt.ToString());
 		return Ok(jwt.ToString());
 	}
 
@@ -55,7 +52,7 @@ public class AuthenticationController : ControllerBase
 	[HttpPost("Refresh")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult RefreshJwtToken([FromQuery]string jwt)
+	public IActionResult RefreshJwtToken([FromQuery] string jwt)
 	{
 		if (!Authenticator.IsTokenValid(jwt, out _)) return Forbid();
 		var token = new JwtModel(jwt);
@@ -71,5 +68,5 @@ public class AuthenticationController : ControllerBase
 	[RequireHttps]
 	[HttpGet("Valid")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
-	public IActionResult IsTokenValidRequest([FromQuery]string jwt) => Ok(Authenticator.IsTokenValid(jwt, out _));
+	public IActionResult IsTokenValidRequest([FromQuery] string jwt) => Ok(Authenticator.IsTokenValid(jwt, out _));
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl.Controllers;
@@ -50,14 +51,18 @@ public class RolesController : ControllerBase
 	/// <param name="roleModel">The RoleModel describing the role</param>
 	/// <returns>nothing</returns>
 	[RequireHttps]
-	[HttpPost("Role/{role}")]
+	[HttpPost("Role")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	public IActionResult CreateRole([FromQuery] string jwt, [FromRoute] string role, [FromBody] RoleModel roleModel)
+	public IActionResult CreateRole([FromQuery] string jwt, [FromBody] RoleModel roleModel)
 	{
-		if (role != roleModel.Name || !Authenticator.IsTokenValid(jwt, out var jrole) ||
-		    !jrole.HasPermission(PermissionId.CreateRole)) return Forbid();
-		return RoleManager.CreateRole(roleModel) ? Ok() : Forbid();
+		if (!Authenticator.IsTokenValid(jwt, out var jrole) ||
+			!jrole.HasPermission(PermissionId.CreateRole)) return Forbid();
+		return RoleManager.CreateRole(roleModel)
+			? Created(
+				new Uri(Request.GetEncodedUrl()).GetLeftPart(UriPartial.Authority) + "/Roles/Role/" + roleModel.Name,
+				RoleManager.GetRole(roleModel.Name!))
+			: Forbid();
 	}
 
 	/// <summary>
@@ -113,7 +118,7 @@ public class RolesController : ControllerBase
 	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
 	{
 		if (!Authenticator.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
-		    !jrole.HasPermission(PermissionId.GetUser)) return Forbid();
+			!jrole.HasPermission(PermissionId.GetUser)) return Forbid();
 		var user = UserManager.GetUser(username, role);
 		return user is not null ? Ok(user) : NotFound();
 	}

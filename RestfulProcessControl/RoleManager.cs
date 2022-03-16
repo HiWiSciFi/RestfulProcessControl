@@ -13,9 +13,9 @@ public static class RoleManager
 		using var db = new DatabaseConnection(Globals.ConnectionString);
 		var roleList = new List<RoleModel>();
 		if (!db.Get().AddTable("role").AddColumn("name").AddColumn("permissions")
-			    .TryExecute(out var elementList)) return roleList;
+				.TryExecute(out var elementList)) return roleList;
 		for (var i = 0; i < elementList["name"].Count; i++)
-			roleList.Add(new RoleModel((string) elementList["name"][i], (long) elementList["permissions"][i]));
+			roleList.Add(new RoleModel((string)elementList["name"][i], (long)elementList["permissions"][i]));
 		return roleList;
 	}
 
@@ -28,7 +28,7 @@ public static class RoleManager
 	{
 		using var db = new DatabaseConnection(Globals.ConnectionString);
 		if (!db.Get().AddTable("role").AddColumn("name").AddColumn("permissions").IfEqual("name", roleName)
-			    .TryExecute(out var elementList)) return null;
+				.TryExecute(out var elementList)) return null;
 		return elementList["name"].Count > 0
 			? new RoleModel((string)elementList["name"][0], (long)elementList["permissions"][0])
 			: null;
