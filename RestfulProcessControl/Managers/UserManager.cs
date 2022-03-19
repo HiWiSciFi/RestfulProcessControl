@@ -1,7 +1,7 @@
 using RestfulProcessControl.Models;
 using RestfulProcessControl.Util;
 
-namespace RestfulProcessControl;
+namespace RestfulProcessControl.Managers;
 
 public static class UserManager
 {

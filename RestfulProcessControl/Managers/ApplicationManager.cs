@@ -1,7 +1,7 @@
 ﻿using RestfulProcessControl.Util;
 using System.IO.Compression;
 
-namespace RestfulProcessControl;
+namespace RestfulProcessControl.Managers;
 
 public static class ApplicationManager
 {
