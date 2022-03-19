@@ -77,4 +77,48 @@ public static class RoleManager
 		using var db = new DatabaseConnection(Globals.ConnectionString);
 		return db.Edit().SetTable("role").IfEqual("name", roleName).AddEdit("permissions", permissions).TryExecute();
 	}
+
+	/// <summary>
+	/// Checks if perms has one or more permissions which than does not have
+	/// </summary>
+	/// <param name="perms">Permission value 1</param>
+	/// <param name="than">Permission value 2</param>
+	/// <returns>true if it does, false otherwise</returns>
+	public static bool HasMorePermissions(RoleModel? perms, long than) =>
+		perms is not null && HasMorePermissions(perms.Permissions, than);
+
+	/// <summary>
+	/// Checks if perms has one or more permissions which than does not have
+	/// </summary>
+	/// <param name="perms">Permission value 1</param>
+	/// <param name="than">Permission value 2</param>
+	/// <returns>true if it does, false otherwise</returns>
+	public static bool HasMorePermissions(long perms, RoleModel? than) =>
+		than is not null && HasMorePermissions(perms, than.Permissions);
+
+	/// <summary>
+	/// Checks if perms has one or more permissions which than does not have
+	/// </summary>
+	/// <param name="perms">Permission value 1</param>
+	/// <param name="than">Permission value 2</param>
+	/// <returns>true if it does, false otherwise</returns>
+	public static bool HasMorePermissions(RoleModel? perms, RoleModel? than)
+	{
+		if (perms is null || than is null) return false;
+		return HasMorePermissions(perms.Permissions, than.Permissions);
+	}
+
+	/// <summary>
+	/// Checks if perms has one or more permissions which than does not have
+	/// </summary>
+	/// <param name="perms">Permission value 1</param>
+	/// <param name="than">Permission value 2</param>
+	/// <returns>true if it does, false otherwise</returns>
+	public static bool HasMorePermissions(long perms, long than)
+	{
+		for (var i = 0; i < 64; i++)
+			if (((perms >> i) & 1) > ((than >> i) & 1))
+				return true;
+		return false;
+	}
 }

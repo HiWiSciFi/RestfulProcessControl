@@ -27,7 +27,12 @@ public static class Globals
 	public static bool Reload()
 	{
 		var globalsFilePath = Path.Combine(".", "globals.json");
-		if (!File.Exists(globalsFilePath)) return false;
+		if (!File.Exists(globalsFilePath))
+		{
+			Logger.LogWarning("\"Globals.json\" could not be found! It has to be present in \"{0}\"!",
+				Directory.GetCurrentDirectory());
+			return false;
+		}
 		using StreamReader reader = new(globalsFilePath);
 		var json = reader.ReadToEnd();
 		try
@@ -35,7 +40,11 @@ public static class Globals
 			var obj = GlobalsModel.Deserialize(json);
 			GlobalsObj = obj;
 		}
-		catch { return false; }
+		catch
+		{
+			Logger.LogWarning("Invalid \"Globals.json\" file!");
+			return false;
+		}
 		return true;
 	}
 }

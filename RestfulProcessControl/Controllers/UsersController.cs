@@ -35,14 +35,19 @@ public class UsersController : ControllerBase
 	[HttpPost("User")]
 	[ProducesResponseType(StatusCodes.Status201Created)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult CreateUser([FromQuery] string jwt, [FromBody] CreateUserModel user)
 	{
-		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.CreateUser))
-			return Forbid();
-		if (!UserManager.CreateUser(user)) return Forbid();
-		return Created(
-			new Uri(Request.GetEncodedUrl()).GetLeftPart(UriPartial.Authority) + "/Users/User/" + user.Username,
-			UserManager.GetUser(user.Username!));
+		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.CreateUser) ||
+		    user.Role is null) return Forbid();
+		var r = RoleManager.GetRole(user.Role);
+		if (RoleManager.HasMorePermissions(r, role)) return Forbid();
+		if (r is null) return NotFound();
+		return UserManager.CreateUser(user)
+			? Created(
+				new Uri(Request.GetEncodedUrl()).GetLeftPart(UriPartial.Authority) + "/Users/User/" + user.Username,
+				UserManager.GetUser(user.Username!))
+			: Forbid();
 	}
 
 	/// <summary>
@@ -55,12 +60,14 @@ public class UsersController : ControllerBase
 	[HttpDelete("User/{username}")]
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult DeleteUser([FromQuery] string jwt, [FromRoute] string username)
 	{
 		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.DeleteUser))
 			return Forbid();
-		if (!UserManager.DeleteUser(username, null)) return Forbid();
-		return Ok();
+		var u = UserManager.GetUser(username);
+		if (u is not null && RoleManager.HasMorePermissions(RoleManager.GetRole(u.Role!), role)) return Forbid();
+		return UserManager.DeleteUser(username) ? Ok() : NotFound();
 	}
 
 	/// <summary>
@@ -75,13 +82,14 @@ public class UsersController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public IActionResult EditPassword([FromQuery] string jwt, [FromBody] EditPasswordUserModel user, [FromRoute] string username)
+	public IActionResult EditPassword([FromQuery] string jwt, [FromBody] EditPasswordUserModel user,
+		[FromRoute] string username)
 	{
 		if (user.Username != username || !AuthenticationManager.IsTokenValid(jwt, out var role) ||
-			!role.HasPermission(PermissionId.EditUser)) return Forbid();
-		if (!UserManager.HasUser(user.Username, null)) return NotFound();
-		if (!UserManager.ChangePassword(user)) return Forbid();
-		return Ok();
+		    !role.HasPermission(PermissionId.EditUser)) return Forbid();
+		var u = UserManager.GetUser(user.Username);
+		if (u is not null && RoleManager.HasMorePermissions(RoleManager.GetRole(u.Role!), role)) return Forbid();
+		return UserManager.ChangePassword(user) ? Ok() : NotFound();
 	}
 
 	/// <summary>
@@ -99,7 +107,7 @@ public class UsersController : ControllerBase
 	{
 		if (!AuthenticationManager.IsTokenValid(jwt, out var role) || !role.HasPermission(PermissionId.GetUser))
 			return Forbid();
-		var user = UserManager.GetUser(username, null);
+		var user = UserManager.GetUser(username);
 		return user is not null ? Ok(user) : NotFound();
 	}
 }

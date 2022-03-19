@@ -55,6 +55,13 @@ public static class UserManager
 	/// Deletes a user from the database
 	/// </summary>
 	/// <param name="username">The username of the user</param>
+	/// <returns></returns>
+	public static bool DeleteUser(string username) => DeleteUser(username, null);
+
+	/// <summary>
+	/// Deletes a user from the database
+	/// </summary>
+	/// <param name="username">The username of the user</param>
 	/// <param name="role">The role of the user (ignored if null)</param>
 	/// <returns></returns>
 	public static bool DeleteUser(string username, string? role)
@@ -71,6 +78,13 @@ public static class UserManager
 	/// <param name="user">The user to check</param>
 	/// <returns>true if the user exists, false otherwise</returns>
 	public static bool HasUser(UserModel user) => user.Username is not null && HasUser(user.Username, user.Role);
+
+	/// <summary>
+	/// Checks if the given user exists
+	/// </summary>
+	/// <param name="username">The username of the user to find</param>
+	/// <returns>true if the user exists, false otherwise</returns>
+	public static bool HasUser(string username) => HasUser(username, null);
 
 	/// <summary>
 	/// Checks if the given user exists
