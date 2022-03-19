@@ -44,14 +44,24 @@ public class RolesController : ControllerBase
 		return rm is null ? NotFound() : Ok(rm);
 	}
 
-	/*[RequireHttps]
+	/// <summary>
+	/// Get all Members of a role
+	/// </summary>
+	/// <param name="jwt">The JWT to authorize the request</param>
+	/// <param name="role">The role whose members to get</param>
+	/// <returns>A List of UserModels containing information about the users</returns>
+	[RequireHttps]
 	[HttpGet("Role/{role}/Members")]
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserModel>))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
 	public IActionResult GetMembers([FromQuery] string jwt, [FromRoute] string role)
 	{
-		return Ok();
-	}*/
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
+		    !jrole.HasPermission(PermissionId.GetUser)) return Forbid();
+		if (RoleManager.GetRole(role) is null) return NotFound();
+		return Ok(RoleManager.GetMembers(role));
+	}
 
 	/// <summary>
 	/// Gets a user by their role and username
@@ -65,11 +75,11 @@ public class RolesController : ControllerBase
 	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
 	[ProducesResponseType(StatusCodes.Status403Forbidden)]
 	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
+	public IActionResult GetMember([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
 	{
 		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
 		    !jrole.HasPermission(PermissionId.GetUser)) return Forbid();
-		var user = UserManager.GetUser(username, role);
+		var user = RoleManager.GetMember(role, username);
 		return user is not null ? Ok(user) : NotFound();
 	}
 

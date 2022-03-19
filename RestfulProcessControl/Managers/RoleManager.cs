@@ -121,4 +121,28 @@ public static class RoleManager
 				return true;
 		return false;
 	}
+
+	/// <summary>
+	/// Gets all users who are members of a certain role
+	/// </summary>
+	/// <param name="rolename">The name of the role</param>
+	/// <returns>A List of UserModels containing information about the members</returns>
+	public static IEnumerable<UserModel> GetMembers(string rolename)
+	{
+		var users = new List<UserModel>();
+		using var db = new DatabaseConnection(Globals.ConnectionString);
+		if (!db.Get().AddTable("user").AddColumn("username").IfEqual("role", rolename)
+			    .TryExecute(out var elementList)) return users;
+		for (var i = 0; i < elementList["username"].Count; i++)
+			users.Add(new UserModel((string) elementList["username"][i], rolename));
+		return users;
+	}
+
+	/// <summary>
+	/// Gets a member of a role
+	/// </summary>
+	/// <param name="rolename">The name of the role</param>
+	/// <param name="username">The name of the user</param>
+	/// <returns>A UserModel containing information about the user</returns>
+	public static UserModel? GetMember(string rolename, string username) => UserManager.GetUser(username, rolename);
 }
