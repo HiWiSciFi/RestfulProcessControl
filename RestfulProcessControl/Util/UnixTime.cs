@@ -1,4 +1,4 @@
-﻿namespace RestfulProcessControl.Models;
+﻿namespace RestfulProcessControl.Util;
 
 public static class UnixTime
 {
