@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using RestfulProcessControl.Managers;
 using RestfulProcessControl.Models;
 
 namespace RestfulProcessControl.Controllers;
@@ -41,6 +42,35 @@ public class RolesController : ControllerBase
 			return Forbid();
 		var rm = RoleManager.GetRole(role);
 		return rm is null ? NotFound() : Ok(rm);
+	}
+
+	/*[RequireHttps]
+	[HttpGet("Role/{role}/Members")]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserModel>))]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	public IActionResult GetMembers([FromQuery] string jwt, [FromRoute] string role)
+	{
+		return Ok();
+	}*/
+
+	/// <summary>
+	/// Gets a user by their role and username
+	/// </summary>
+	/// <param name="jwt">The JWT to authorize the request</param>
+	/// <param name="username">The username of the user</param>
+	/// <param name="role">The role of the user</param>
+	/// <returns>A UserModel containing the information of the requested user</returns>
+	[RequireHttps]
+	[HttpGet("Role/{role}/Members/Member/{username}")]
+	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
+	[ProducesResponseType(StatusCodes.Status403Forbidden)]
+	[ProducesResponseType(StatusCodes.Status404NotFound)]
+	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
+	{
+		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
+		    !jrole.HasPermission(PermissionId.GetUser)) return Forbid();
+		var user = UserManager.GetUser(username, role);
+		return user is not null ? Ok(user) : NotFound();
 	}
 
 	/// <summary>
@@ -104,25 +134,5 @@ public class RolesController : ControllerBase
 		if (RoleManager.HasMorePermissions(RoleManager.GetRole(role), jrole) ||
 		    RoleManager.HasMorePermissions(permissions, jrole)) return Forbid();
 		return RoleManager.SetRolePermissions(role, permissions) ? Ok() : NotFound();
-	}
-
-	/// <summary>
-	/// Gets a user by their role and username
-	/// </summary>
-	/// <param name="jwt">The JWT to authorize the request</param>
-	/// <param name="username">The username of the user</param>
-	/// <param name="role">The role of the user</param>
-	/// <returns>A UserModel containing the information of the requested user</returns>
-	[RequireHttps]
-	[HttpGet("Role/{role}/User/{username}")]
-	[ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserModel))]
-	[ProducesResponseType(StatusCodes.Status403Forbidden)]
-	[ProducesResponseType(StatusCodes.Status404NotFound)]
-	public IActionResult GetUserByUsername([FromQuery] string jwt, [FromRoute] string username, [FromRoute] string role)
-	{
-		if (!AuthenticationManager.IsTokenValid(jwt, out var jrole) || !jrole.HasPermission(PermissionId.GetRole) ||
-			!jrole.HasPermission(PermissionId.GetUser)) return Forbid();
-		var user = UserManager.GetUser(username, role);
-		return user is not null ? Ok(user) : NotFound();
 	}
 }
