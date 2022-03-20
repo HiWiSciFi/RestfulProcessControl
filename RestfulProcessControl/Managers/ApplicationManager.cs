@@ -11,9 +11,23 @@ public static class ApplicationManager
 	/// <summary>
 	/// Loads all Applications
 	/// </summary>
-	public static void LoadAll()
+	/// <returns>true if the loading process was successful, false otherwise</returns>
+	public static async Task<bool> LoadAll()
 	{
+		var appsFolderPath = Path.Combine(".", "apps");
+		if (!Directory.Exists(appsFolderPath)) return false;
+		var appFolders = Directory.GetDirectories(appsFolderPath);
+		foreach (var appFolder in appFolders)
+		{
+			var appName = Path.GetDirectoryName(appFolder);
+			if (appName is null or "") continue;
+			if (!Directory.Exists(Path.Combine(appFolder, "application"))) continue;
+			if (!File.Exists(Path.Combine(appFolder, "config.json"))) continue;
 
+			var app = new Application(appName);
+			await app.ReloadConfig();
+		}
+		return true;
 	}
 
 	/// <summary>
@@ -51,10 +65,10 @@ public static class ApplicationManager
 		Logger.LogInformation("Creating and Downloading Backup of application {0}...", id);
 
 		if (id >= Applications.Count) return Task.FromResult(false);
-		var backupFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "apps", Applications[id].FolderName, "application");
+		var backupFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "apps", Applications[id].Name, "application");
 
 		if (!Directory.Exists(backupFolderPath)) return Task.FromResult(false);
-		var zipPath = Path.Combine(backupFolderPath, "..", "backup-" + Applications[id].FolderName + ".zip");
+		var zipPath = Path.Combine(backupFolderPath, "..", "backup-" + Applications[id].Name + ".zip");
 
 		if (File.Exists(zipPath))
 		{
@@ -72,8 +86,8 @@ public static class ApplicationManager
 	{
 		var zipPath =
 			Path.Combine(
-				Path.Combine(Directory.GetCurrentDirectory(), "apps", Applications[id].FolderName, "application"), "..",
-				"backup-" + Applications[id].FolderName + ".zip");
+				Path.Combine(Directory.GetCurrentDirectory(), "apps", Applications[id].Name, "application"), "..",
+				"backup-" + Applications[id].Name + ".zip");
 		return !File.Exists(zipPath)
 			? Task.FromResult<FileStream?>(null)
 			: Task.FromResult<FileStream?>(File.OpenRead(zipPath));

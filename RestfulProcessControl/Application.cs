@@ -5,13 +5,20 @@ namespace RestfulProcessControl;
 
 public class Application
 {
-	public string FolderName { get; }
+	public string Name { get; }
 	public ApplicationConfigModel? Config { get; private set; }
 	public bool Running { get; private set; }
 
 	public Application()
 	{
-		FolderName = "Testapp";
+		Name = "Testapp";
+		Config = null;
+		Running = false;
+	}
+
+	public Application(string name)
+	{
+		Name = name;
 		Config = null;
 		Running = false;
 	}
@@ -31,8 +38,8 @@ public class Application
 	/// <returns>A Configuration if one could be loaded</returns>
 	private Task<ApplicationConfigModel?> LoadConfig()
 	{
-		Logger.LogInformation("Loading Configuration for \"{0}\"...", FolderName);
-		var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "apps", FolderName, "config.json");
+		Logger.LogInformation("Loading Configuration for \"{0}\"...", Name);
+		var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "apps", Name, "config.json");
 		if (!System.IO.File.Exists(jsonFilePath)) return Task.FromResult<ApplicationConfigModel?>(null);
 		var jsonString = System.IO.File.ReadAllText(jsonFilePath);
 		return Task.FromResult(ApplicationConfigModel.Deserialize(jsonString));
@@ -44,7 +51,7 @@ public class Application
 	/// <returns>True, if successful, false otherwise</returns>
 	public bool Start()
 	{
-		Logger.LogInformation("Starting application \"{0}\"...", FolderName);
+		Logger.LogInformation("Starting application \"{0}\"...", Name);
 		Running = false;
 		return false;
 	}
@@ -55,7 +62,7 @@ public class Application
 	/// <returns>True if successful, false otherwise</returns>
 	public bool Stop()
 	{
-		Logger.LogInformation("Stopping application \"{0}\"...", FolderName);
+		Logger.LogInformation("Stopping application \"{0}\"...", Name);
 		Running = false;
 		return false;
 	}

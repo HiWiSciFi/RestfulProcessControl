@@ -100,6 +100,6 @@ public class ApplicationsController : ControllerBase
 			return Forbid();
 		var fs = await ApplicationManager.GetBackupStream(id);
 		if (fs is null) return NotFound();
-		return File(fs, "application/zip", $"{ApplicationManager.GetApp(id)!.FolderName}-backup.zip");
+		return File(fs, "application/zip", $"{ApplicationManager.GetApp(id)!.Name}-backup.zip");
 	}
 }
