@@ -25,7 +25,9 @@ public static class ApplicationManager
 			if (!File.Exists(Path.Combine(appFolder, "config.json"))) continue;
 
 			var app = new Application(appName);
-			await app.ReloadConfig();
+			var config = await app.ReloadConfig();
+			if (config is null) continue;
+			Applications.Add(app);
 		}
 		return true;
 	}
@@ -82,6 +84,11 @@ public static class ApplicationManager
 		return Task.FromResult(true);
 	}
 
+	/// <summary>
+	/// Gets a File stream for the backup file of an application
+	/// </summary>
+	/// <param name="id">The id of the application</param>
+	/// <returns></returns>
 	public static Task<FileStream?> GetBackupStream(int id)
 	{
 		var zipPath =
